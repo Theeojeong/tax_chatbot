@@ -16,28 +16,30 @@ This repository contains a project that utilizes LangChain and Streamlit to buil
 ## Installation
 
 1. Clone the repository:
-    ```sh
-    git clone https://github.com/jasonkang14/inflearn-streamlit.git
-    cd inflearn-streamlit
-    ```
+
+   ```sh
+   git clone https://github.com/Theeojeong/tax_chatbot.git
+   ```
 
 2. Create and activate a virtual environment:
-    ```sh
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+
+   ```sh
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
 3. Install the required dependencies:
-    ```sh
-    pip install -r requirements.txt
-    ```
+   ```sh
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
 1. Run the Streamlit application:
-    ```sh
-    streamlit run chat.py
-    ```
+
+   ```sh
+   streamlit run chat.py
+   ```
 
 2. Open your web browser and navigate to the displayed local URL to interact with the application.
 
