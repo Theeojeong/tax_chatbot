@@ -6,8 +6,8 @@ load_dotenv()
 
 st.set_page_config(page_title="rag")
 
-st.title("소득세 챗봇 🤖")
-st.caption("소득세에 관한 질문이라면 얼마든지 물어보세요!")
+st.title("Korean Income Tax Chatbot 🤖")
+st.caption("Have any questions about income tax? Just ask!")
 
 
 if 'message_list' not in st.session_state:
