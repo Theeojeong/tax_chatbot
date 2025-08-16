@@ -61,14 +61,16 @@ def get_history_retriever():
 
 
 def get_dictionary_chain(): # 사용자의 질문을 수정해주는 chain
-    dictionalry = ["사람을 나타내는 단어 -> 거주자"]
+    dictionary = ["사람을 나타내는 단어 -> 거주자"]
     llm = get_llm()
     prompt = ChatPromptTemplate.from_template(
         f"""
-        사전을 보고 사용자의 질문이 수정할 필요가 있다면 수정해주고 수정본을 리턴해주세요.
-        만약 수정할 필요가 없다면 미사여구 없이 사용자의 질문만 그대로 리턴해주세요.
-        사전: {dictionalry}
-        사용자의 질문: {{question}}
+        사용자의 질문을 보고, 우리의 사전을 참고해서 사용자의 질문을 변경해주세요.
+        만약 변경할 필요가 없다고 판단된다면, 사용자의 질문을 변경하지 않아도 됩니다.
+        그런 경우에는 질문만 리턴해주세요
+        사전: {dictionary}
+        
+        질문: {{question}}
         """
     )
     dictionary_chain = prompt | llm | StrOutputParser()
