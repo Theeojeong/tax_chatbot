@@ -6,7 +6,7 @@ load_dotenv()
 
 st.set_page_config(page_title="rag")
 
-st.title("한국 소득세법 챗봇봇🤖")
+st.title("한국 소득세법 챗봇🤖")
 st.caption("Have any questions about income tax? Just ask!")
 
 
