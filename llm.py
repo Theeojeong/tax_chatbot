@@ -14,7 +14,7 @@ from config import answer_examples
 def get_retriever():
     embedding = UpstageEmbeddings(model="embedding-query")
     index_name="markdown2"
-    database = PineconeVectorStore.from_existing_index(embedding=embedding, index_name=index_name )
+    database = PineconeVectorStore.from_existing_index(embedding=embedding, index_name=index_name)
     retriever = database.as_retriever(search_kwargs={'k': 4})
     return retriever
 
