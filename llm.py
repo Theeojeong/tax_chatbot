@@ -3,6 +3,7 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_pinecone import PineconeVectorStore
+from langchain_upstage import UpstageEmbeddings
 from langchain.chains import RetrievalQA, create_history_aware_retriever, create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, FewShotChatMessagePromptTemplate 
 from langchain_core.output_parsers import StrOutputParser
@@ -11,8 +12,8 @@ from config import answer_examples
 
 
 def get_retriever():
-    embedding = OpenAIEmbeddings(model="text-embedding-3-large")
-    index_name="markdown"
+    embedding = UpstageEmbeddings(model="embedding-query")
+    index_name="markdown2"
     database = PineconeVectorStore.from_existing_index(embedding=embedding, index_name=index_name )
     retriever = database.as_retriever(search_kwargs={'k': 4})
     return retriever
