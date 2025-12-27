@@ -4,6 +4,10 @@
 
 This repository contains a project that utilizes LangChain and Streamlit to build a Retrieval Augmented Generation (RAG) application. The primary focus of this application is to provide insights and answers based on the South Korean Income Tax Law (소득세법). By leveraging advanced NLP techniques, this application enhances its responses using a combination of chat history and few-shot learning templates.
 
+## New Full-Stack App (Next.js + FastAPI + PostgreSQL)
+
+This workspace now includes a Next.js frontend and a FastAPI backend that implement the multi-agent routing system from `reference/2.8 Multi-Agent 시스템과 RouteLLM.ipynb`. The backend persists users, conversations, and messages in PostgreSQL so users can resume past chats or start new ones.
+
 ## Features
 
 - **LangChain Integration**: Utilizes LangChain to manage and interact with language models effectively.
@@ -43,6 +47,38 @@ Try it! 👉 https://tax-chatbot-inflearn.streamlit.app/
 
    ```sh
    streamlit run chat.py
+
+## Full-Stack Usage
+
+1. Start PostgreSQL and create a database:
+
+   ```sh
+   createdb tax_chatbot
+   ```
+
+2. Configure backend environment variables:
+
+   ```sh
+   cp backend/.env.example backend/.env
+   ```
+
+3. Run the FastAPI server:
+
+   ```sh
+   cd backend
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload
+   ```
+
+4. Run the Next.js frontend:
+
+   ```sh
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+5. Open `http://localhost:3000` and sign up.
    ```
 
 2. Open your web browser and navigate to the displayed local URL to interact with the application.
@@ -52,6 +88,8 @@ Try it! 👉 https://tax-chatbot-inflearn.streamlit.app/
 - `chat.py`: Main application script that runs the Streamlit interface.
 - `llm.py`: Contains utility functions for handling the knowledge base and model interactions.
 - `config.py`: File with few-shot learning templates used to generate answers.
+- `backend/`: FastAPI backend with multi-agent routing and PostgreSQL persistence.
+- `frontend/`: Next.js frontend with chat UI, login/signup, and conversation sidebar.
 
 ## How It Works
 
