@@ -10,7 +10,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/signup", response_model=Token)
-def signup(payload: UserCreate, db: Session = Depends(get_db)):
+def signup(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+):
+    print("입력한 비밀번호", payload.password)
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(
@@ -21,6 +25,10 @@ def signup(payload: UserCreate, db: Session = Depends(get_db)):
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
         display_name=payload.display_name,
+    )
+    print("해싱된 비밀번호", get_password_hash(payload.password))
+    print(
+        "해싱된 비밀번호 길이, String(255)임", len(get_password_hash(payload.password))
     )
     db.add(user)
     db.commit()
