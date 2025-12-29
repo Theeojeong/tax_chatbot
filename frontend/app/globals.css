@@ -196,16 +196,161 @@ textarea {
   padding-right: 4px;
 }
 
+/* 스크롤바 스타일링 - 웹킷 브라우저 (Chrome, Edge, Safari) */
+.conversation-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.conversation-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.conversation-list::-webkit-scrollbar-thumb {
+  background: rgba(110, 101, 89, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 154, 138, 0.4);
+}
+
+/* 스크롤바 스타일링 - Firefox */
+.conversation-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 101, 89, 0.2) transparent;
+}
+
 .conversation-item {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.7);
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   cursor: pointer;
   transition: 0.2s ease;
   animation: fadeUp 0.4s ease;
+}
+
+.conversation-info {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.menu-btn {
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: 0;
+  transition: 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1;
+}
+
+.menu-btn-circle {
+  font-size: 0.9rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-btn-dots {
+  font-size: 0.65rem;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conversation-item:hover .menu-btn,
+.conversation-item.menu-open .menu-btn,
+.menu-btn:focus-visible {
+  opacity: 1;
+}
+
+.menu-btn:hover {
+  background: rgba(47, 154, 138, 0.12);
+  color: #2f9a8a;
+}
+
+.menu-btn:focus-visible {
+  outline: 2px solid rgba(47, 154, 138, 0.45);
+  outline-offset: 2px;
+}
+
+.conversation-menu {
+  position: absolute;
+  right: 0;
+  min-width: 120px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  z-index: 20;
+}
+
+.conversation-menu.menu-down {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+
+.conversation-menu.menu-up {
+  bottom: calc(100% + 6px);
+  top: auto;
+}
+
+.menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.menu-item.delete {
+  color: #b84b3e;
+}
+
+.menu-item.delete:hover {
+  background: rgba(184, 75, 62, 0.12);
 }
 
 .conversation-item.active {
@@ -254,6 +399,32 @@ textarea {
   gap: 18px;
   overflow-y: auto;
   animation: fadeUp 0.6s ease;
+}
+
+/* 채팅 창 스크롤바 스타일링 - 웹킷 브라우저 */
+.chat-window::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background: rgba(110, 101, 89, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 154, 138, 0.4);
+}
+
+/* 채팅 창 스크롤바 스타일링 - Firefox */
+.chat-window {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 101, 89, 0.2) transparent;
 }
 
 .message {
@@ -308,7 +479,7 @@ textarea {
 
 .composer-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
 }

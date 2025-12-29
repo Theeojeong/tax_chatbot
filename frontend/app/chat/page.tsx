@@ -24,6 +24,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+  const [menuDirection, setMenuDirection] = useState<"up" | "down">("down");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -74,6 +76,30 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (menuOpenId === null) {
+      return;
+    }
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) {
+        setMenuOpenId(null);
+        return;
+      }
+      if (target.closest(`[data-conversation-menu="${menuOpenId}"]`)) {
+        return;
+      }
+      if (target.closest(`[data-conversation-menu-button="${menuOpenId}"]`)) {
+        return;
+      }
+      setMenuOpenId(null);
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [menuOpenId]);
 
   const activeConversation = useMemo(
     () => conversations.find((item) => item.id === activeId) ?? null,
@@ -165,6 +191,29 @@ export default function ChatPage() {
     }
   };
 
+  const handleDeleteConversation = async (conversationId: number) => {
+    if (!confirm("이 대화를 삭제하시겠습니까?")) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await apiFetch(`/conversations/${conversationId}`, {
+        method: "DELETE",
+      });
+      setConversations((prev) =>
+        prev.filter((item) => item.id !== conversationId)
+      );
+      if (activeId === conversationId) {
+        const remaining = conversations.filter((item) => item.id !== conversationId);
+        setActiveId(remaining.length > 0 ? remaining[0].id : null);
+        setMessages([]);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -181,13 +230,74 @@ export default function ChatPage() {
               key={conversation.id}
               className={`conversation-item ${
                 conversation.id === activeId ? "active" : ""
-              }`}
+              } ${menuOpenId === conversation.id ? "menu-open" : ""}`}
               onClick={() => setActiveId(conversation.id)}
             >
-              <strong>{conversation.title}</strong>
-              <span>
-                {new Date(conversation.updated_at).toLocaleDateString("ko-KR")}
-              </span>
+              <div className="conversation-info">
+                <strong>{conversation.title}</strong>
+                <span>
+                  {new Date(conversation.updated_at).toLocaleDateString("ko-KR")}
+                </span>
+              </div>
+              <div className="conversation-actions">
+                <button
+                  className="menu-btn"
+                  data-conversation-menu-button={conversation.id}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    const button = event.currentTarget;
+                    const sidebar = button.closest(".sidebar") as HTMLElement;
+                    const menuHeight = 50; // 대략적인 메뉴 높이
+                    const gap = 6;
+                    
+                    if (sidebar) {
+                      const buttonRect = button.getBoundingClientRect();
+                      const sidebarRect = sidebar.getBoundingClientRect();
+                      const spaceBelow = sidebarRect.bottom - buttonRect.bottom;
+                      const spaceAbove = buttonRect.top - sidebarRect.top;
+                      
+                      // 아래 공간이 충분하면 아래로, 부족하면 위로
+                      if (spaceBelow >= menuHeight + gap) {
+                        setMenuDirection("down");
+                      } else if (spaceAbove >= menuHeight + gap) {
+                        setMenuDirection("up");
+                      } else {
+                        // 양쪽 모두 부족하면 더 많은 공간이 있는 쪽으로
+                        setMenuDirection(spaceBelow > spaceAbove ? "down" : "up");
+                      }
+                    }
+                    
+                    setMenuOpenId((prev) =>
+                      prev === conversation.id ? null : conversation.id
+                    );
+                  }}
+                  title="대화 메뉴"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpenId === conversation.id}
+                  aria-label="대화 메뉴"
+                >
+                  <span className="menu-btn-dots">⋯</span>
+                </button>
+                {menuOpenId === conversation.id ? (
+                  <div
+                    className={`conversation-menu ${menuDirection === "up" ? "menu-up" : "menu-down"}`}
+                    data-conversation-menu={conversation.id}
+                    role="menu"
+                  >
+                    <button
+                      className="menu-item delete"
+                      role="menuitem"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setMenuOpenId(null);
+                        handleDeleteConversation(conversation.id);
+                      }}
+                    >
+                      대화 삭제
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ))}
           {conversations.length === 0 ? (
@@ -254,7 +364,6 @@ export default function ChatPage() {
           />
           {error ? <p className="error-text">{error}</p> : null}
           <div className="composer-footer">
-            <span className="meta">대화는 사용자별로 저장됩니다.</span>
             <button onClick={handleSend} disabled={loading}>
               {loading ? "답변 생성 중" : "보내기"}
             </button>

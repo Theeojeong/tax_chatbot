@@ -133,3 +133,7 @@ graph_builder.add_conditional_edges(
 graph_builder.add_edge("rewrite", "retrieve")
 
 graph = graph_builder.compile()
+
+if __name__ == "__main__":
+    with open("graph.png", "wb") as f:
+        f.write(graph.get_graph().draw_mermaid_png())

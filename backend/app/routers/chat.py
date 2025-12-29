@@ -50,6 +50,18 @@ def create_conversation(
     return conversation
 
 
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    conversation = _get_conversation(db, current_user.id, conversation_id)
+    db.delete(conversation)
+    db.commit()
+    return None
+
+
 @router.get("/{conversation_id}/messages", response_model=list[MessageOut])
 def list_messages(
     conversation_id: int,

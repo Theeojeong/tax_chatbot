@@ -91,3 +91,4 @@ frontend/.env.*.local
 .ruff_cache/
 .cache/
 *.egg-info/
+test/
