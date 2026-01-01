@@ -26,6 +26,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuDirection, setMenuDirection] = useState<"up" | "down">("down");
+  const [loadingDots, setLoadingDots] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -76,6 +77,20 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // 로딩 중 점(...) 애니메이션
+  useEffect(() => {
+    if (!loading) {
+      setLoadingDots("");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLoadingDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     if (menuOpenId === null) {
@@ -349,7 +364,9 @@ export default function ChatPage() {
               <div>
                 <div className="role">Agent</div>
               </div>
-              <div className="bubble">응답을 생성 중입니다...</div>
+              <div className="bubble">
+                응답을 생성 중입니다{loadingDots}
+              </div>
             </div>
           ) : null}
           <div ref={bottomRef} />
