@@ -2,7 +2,7 @@ from datetime import date
 
 from langchain import hub
 from langchain_chroma import Chroma
-from langchain_community.tools import TavilySearchResults
+from langchain_tavily import TavilySearch
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
@@ -86,7 +86,7 @@ def get_tax_deduction(state: AgentState):
     return {"tax_deduction": tax_deduction}
 
 
-tavily_search_tool = TavilySearchResults(
+tavily_search_tool = TavilySearch(
     max_results=5,
     search_depth="advanced",
     include_answer=True,

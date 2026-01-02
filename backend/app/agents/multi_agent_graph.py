@@ -36,7 +36,7 @@ router_prompt = ChatPromptTemplate.from_messages(
 )
 
 
-small_llm = get_llm(small=True)
+small_llm = get_llm()
 structured_router_llm = small_llm.with_structured_output(Route)
 
 

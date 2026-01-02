@@ -22,8 +22,8 @@ AZURE_OPENAI_SMALL_DEPLOYMENT = os.getenv(
     "AZURE_OPENAI_SMALL_DEPLOYMENT", "gpt-4o-mini-2024-07-18"
 )
 
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-OPENAI_SMALL_MODEL = os.getenv("OPENAI_SMALL_MODEL", "gpt-4o-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.1")
+OPENAI_SMALL_MODEL = os.getenv("OPENAI_SMALL_MODEL", "gpt-5-mini")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large")
 
 INCOME_TAX_COLLECTION_DIR = BASE_DIR / "reference" / "income_tax_collection"
