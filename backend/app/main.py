@@ -8,7 +8,7 @@ from .routers import auth, chat
 
 load_dotenv()
 
-app = FastAPI(title="Tax Chatbot API")
+app = FastAPI(title="Tax Chatbot API", root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
