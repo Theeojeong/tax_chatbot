@@ -22,7 +22,7 @@ def _get_conversation(db: Session, user_id: int, conversation_id: int) -> Conver
     return conversation
 
 
-@router.get("/", response_model=list[ConversationOut])
+@router.get("", response_model=list[ConversationOut])
 def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -36,7 +36,7 @@ def list_conversations(
     return conversations
 
 
-@router.post("/", response_model=ConversationOut)
+@router.post("", response_model=ConversationOut)
 def create_conversation(
     payload: ConversationCreate,
     db: Session = Depends(get_db),
