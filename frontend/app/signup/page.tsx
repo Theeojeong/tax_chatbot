@@ -2,11 +2,25 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { apiFetch } from "../../lib/api";
 import { setAuth } from "../../lib/auth";
+import { GOOGLE_CLIENT_ID } from "../../lib/config";
 import type { TokenResponse } from "../../lib/types";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
+        };
+      };
+    };
+  }
+}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,6 +29,56 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleCallback = async (response: { credential: string }) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const payload = await apiFetch<TokenResponse>("/auth/google", {
+        method: "POST",
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      setAuth(payload);
+      router.push("/chat");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCallback,
+        });
+        const buttonDiv = document.getElementById("google-signup-button");
+        if (buttonDiv) {
+          window.google.accounts.id.renderButton(buttonDiv, {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+            text: "signup_with",
+            locale: "ko",
+          });
+        }
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -86,6 +150,19 @@ export default function SignupPage() {
         <button type="submit" disabled={loading}>
           {loading ? "가입 중..." : "회원가입"}
         </button>
+
+        {GOOGLE_CLIENT_ID && (
+          <>
+            <div className="auth-divider">
+              <span>또는</span>
+            </div>
+            <div
+              id="google-signup-button"
+              className="google-button-wrapper"
+            ></div>
+          </>
+        )}
+
         <Link className="secondary" href="/login">
           이미 계정이 있나요? 로그인
         </Link>

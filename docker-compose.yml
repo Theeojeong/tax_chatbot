@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    logging:
+    logging: # 여기서 부터 grafana 설정
       driver: json-file
       options:
         max-size: "10m"
@@ -39,7 +39,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    logging:
+    logging: # 여기서 부터 grafana 설정
       driver: json-file
       options:
         max-size: "10m"

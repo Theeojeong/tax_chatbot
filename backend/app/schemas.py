@@ -31,6 +31,10 @@ class Token(BaseModel):
     user: UserOut
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str  # Google ID Token
+
+
 class ConversationCreate(BaseModel):
     title: str | None = None
 

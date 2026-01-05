@@ -460,7 +460,11 @@ textarea {
 }
 
 .message.user .bubble {
-  background: linear-gradient(120deg, rgba(47, 154, 138, 0.2), rgba(47, 154, 138, 0.08));
+  background: linear-gradient(
+    120deg,
+    rgba(47, 154, 138, 0.2),
+    rgba(47, 154, 138, 0.08)
+  );
   border-color: rgba(47, 154, 138, 0.4);
 }
 
@@ -524,6 +528,32 @@ textarea {
 .error-text {
   color: #b84b3e;
   font-size: 0.9rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.google-button-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.google-button-wrapper > div {
+  width: 100% !important;
 }
 
 @media (max-width: 900px) {
