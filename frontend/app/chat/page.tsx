@@ -6,11 +6,17 @@ import { useRouter } from "next/navigation";
 
 import { apiFetch } from "../../lib/api";
 import { clearAuth } from "../../lib/auth";
-import type { ChatResponse, Conversation, Message, User } from "../../lib/types";
+import type {
+  ChatResponse,
+  Conversation,
+  Message,
+  User,
+} from "../../lib/types";
 
 function sortConversations(list: Conversation[]) {
   return [...list].sort(
-    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    (a, b) =>
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
   );
 }
 
@@ -220,7 +226,9 @@ export default function ChatPage() {
         prev.filter((item) => item.id !== conversationId)
       );
       if (activeId === conversationId) {
-        const remaining = conversations.filter((item) => item.id !== conversationId);
+        const remaining = conversations.filter(
+          (item) => item.id !== conversationId
+        );
         setActiveId(remaining.length > 0 ? remaining[0].id : null);
         setMessages([]);
       }
@@ -233,8 +241,8 @@ export default function ChatPage() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <h2>TaxRoute</h2>
-          <span>RouteLLM 멀티 에이전트</span>
+          <h2>세무톡</h2>
+          <span>부동산 세무 상담을 도와드립니다.</span>
         </div>
         <button className="primary" onClick={handleNewConversation}>
           새 대화 시작
@@ -251,7 +259,9 @@ export default function ChatPage() {
               <div className="conversation-info">
                 <strong>{conversation.title}</strong>
                 <span>
-                  {new Date(conversation.updated_at).toLocaleDateString("ko-KR")}
+                  {new Date(conversation.updated_at).toLocaleDateString(
+                    "ko-KR"
+                  )}
                 </span>
               </div>
               <div className="conversation-actions">
@@ -264,13 +274,13 @@ export default function ChatPage() {
                     const sidebar = button.closest(".sidebar") as HTMLElement;
                     const menuHeight = 50; // 대략적인 메뉴 높이
                     const gap = 6;
-                    
+
                     if (sidebar) {
                       const buttonRect = button.getBoundingClientRect();
                       const sidebarRect = sidebar.getBoundingClientRect();
                       const spaceBelow = sidebarRect.bottom - buttonRect.bottom;
                       const spaceAbove = buttonRect.top - sidebarRect.top;
-                      
+
                       // 아래 공간이 충분하면 아래로, 부족하면 위로
                       if (spaceBelow >= menuHeight + gap) {
                         setMenuDirection("down");
@@ -278,10 +288,12 @@ export default function ChatPage() {
                         setMenuDirection("up");
                       } else {
                         // 양쪽 모두 부족하면 더 많은 공간이 있는 쪽으로
-                        setMenuDirection(spaceBelow > spaceAbove ? "down" : "up");
+                        setMenuDirection(
+                          spaceBelow > spaceAbove ? "down" : "up"
+                        );
                       }
                     }
-                    
+
                     setMenuOpenId((prev) =>
                       prev === conversation.id ? null : conversation.id
                     );
@@ -295,7 +307,9 @@ export default function ChatPage() {
                 </button>
                 {menuOpenId === conversation.id ? (
                   <div
-                    className={`conversation-menu ${menuDirection === "up" ? "menu-up" : "menu-down"}`}
+                    className={`conversation-menu ${
+                      menuDirection === "up" ? "menu-up" : "menu-down"
+                    }`}
                     data-conversation-menu={conversation.id}
                     role="menu"
                   >
@@ -343,8 +357,8 @@ export default function ChatPage() {
             <div className="empty-state">
               <h4>멀티 에이전트 준비 완료</h4>
               <p>
-                소득세/종부세 질문은 전문 에이전트가, 그 외 질문은 일반
-                LLM이 응답합니다.
+                소득세/종부세 질문은 전문 에이전트가, 그 외 질문은 일반 LLM이
+                응답합니다.
               </p>
             </div>
           ) : (
@@ -364,9 +378,7 @@ export default function ChatPage() {
               <div>
                 <div className="role">Agent</div>
               </div>
-              <div className="bubble">
-                응답을 생성 중입니다{loadingDots}
-              </div>
+              <div className="bubble">응답을 생성 중입니다{loadingDots}</div>
             </div>
           ) : null}
           <div ref={bottomRef} />

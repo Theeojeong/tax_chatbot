@@ -57,7 +57,6 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/google", response_model=Token)
 async def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
-    """Google OAuth 로그인/회원가입"""
     
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(

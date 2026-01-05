@@ -14,8 +14,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "TaxRoute Chat",
-  description: "Multi-agent tax assistant",
+  title: "세무톡",
+  description: "부동산 세무 상담을 도와드립니다.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -12,7 +12,7 @@ app = FastAPI(title="Tax Chatbot API", root_path="/api", redirect_slashes=False)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],
+    allow_origins=[FRONTEND_ORIGIN, "http://localhost:3000",],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
