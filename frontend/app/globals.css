@@ -379,8 +379,8 @@ textarea {
 .main-panel {
   display: flex;
   flex-direction: column;
-  padding: 28px 32px;
-  gap: 20px;
+  padding: 15px 30px 6px 30px;
+  gap: 12px;
   height: 100vh;
   overflow: hidden;
 }
@@ -479,6 +479,87 @@ textarea {
   color: var(--muted);
 }
 
+/* 마크다운 스타일 */
+.bubble p {
+  margin: 0 0 0.5em 0;
+}
+
+.bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.bubble ul,
+.bubble ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.bubble li {
+  margin: 0.25em 0;
+}
+
+.bubble h1,
+.bubble h2,
+.bubble h3,
+.bubble h4 {
+  margin: 0.5em 0 0.25em 0;
+  font-weight: 600;
+}
+
+.bubble h1 {
+  font-size: 1.3em;
+}
+
+.bubble h2 {
+  font-size: 1.2em;
+}
+
+.bubble h3 {
+  font-size: 1.1em;
+}
+
+.bubble code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: monospace;
+}
+
+.bubble pre {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.75em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.bubble pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.bubble strong {
+  font-weight: 600;
+}
+
+.bubble em {
+  font-style: italic;
+}
+
+.bubble blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 0.5em 0;
+  padding-left: 1em;
+  color: var(--muted);
+}
+
+.bubble hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.75em 0;
+}
+
 .composer {
   border: 1px solid var(--border);
   background: var(--panel-strong);
@@ -520,6 +601,23 @@ textarea {
   color: var(--muted);
 }
 
+.disclaimer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 2px 0 2px 0;
+}
+
+.source-link {
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.source-link:hover {
+  color: var(--text);
+}
+
 .empty-state {
   flex: 1;
   display: grid;
@@ -558,6 +656,137 @@ textarea {
 
 .google-button-wrapper > div {
   width: 100% !important;
+}
+
+/* 출처 버튼 */
+.source-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: rgba(47, 154, 138, 0.1);
+  border: 1px solid rgba(47, 154, 138, 0.3);
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.source-btn:hover {
+  background: rgba(47, 154, 138, 0.2);
+}
+
+/* 모달 오버레이 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 출처 모달 */
+.source-modal {
+  background: var(--panel);
+  border-radius: 20px;
+  width: min(90vw, 800px);
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-family: var(--font-display), "Fraunces", serif;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+.modal-content {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(85vh - 80px);
+  display: grid;
+  gap: 24px;
+}
+
+.source-item {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.source-item h4 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.source-item img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.source-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 @media (max-width: 900px) {

@@ -92,3 +92,4 @@ frontend/.env.*.local
 .cache/
 *.egg-info/
 test/
+# documents/

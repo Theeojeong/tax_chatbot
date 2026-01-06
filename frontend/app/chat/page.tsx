@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 
 import { apiFetch } from "../../lib/api";
 import { clearAuth } from "../../lib/auth";
@@ -33,6 +34,7 @@ export default function ChatPage() {
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuDirection, setMenuDirection] = useState<"up" | "down">("down");
   const [loadingDots, setLoadingDots] = useState("");
+  const [showSourceModal, setShowSourceModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -63,8 +65,14 @@ export default function ChatPage() {
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
+      setLoading(false);
+      setError(null);
       return;
     }
+
+    // 대화 전환 시 이전 로딩 상태 초기화
+    setLoading(false);
+    setError(null);
 
     const loadMessages = async () => {
       try {
@@ -242,7 +250,10 @@ export default function ChatPage() {
       <aside className="sidebar">
         <div className="brand">
           <h2>세무톡</h2>
-          <span>부동산 세무 상담을 도와드립니다.</span>
+          <span>
+            종합부동산세법과 소득세법 데이터를 &nbsp;바탕으로 상담을
+            도와드립니다
+          </span>
         </div>
         <button className="primary" onClick={handleNewConversation}>
           새 대화 시작
@@ -341,6 +352,40 @@ export default function ChatPage() {
         </button>
       </aside>
 
+      {showSourceModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowSourceModal(false)}
+        >
+          <div className="source-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📚 RAG 학습 데이터 출처</h3>
+              <button
+                className="close-btn"
+                onClick={() => setShowSourceModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="source-item">
+                <h4>소득세법</h4>
+                <img src="/images/tax_source.png" alt="소득세법 원본" />
+                <p>국가법령정보센터 (2024.12 기준)</p>
+              </div>
+              <div className="source-item">
+                <h4>종합부동산세법</h4>
+                <img
+                  src="/images/realestate_source.png"
+                  alt="종합부동산세법 원본"
+                />
+                <p>국가법령정보센터 (2024.12 기준)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="main-panel">
         <header className="main-header">
           <div>
@@ -369,7 +414,13 @@ export default function ChatPage() {
                     {message.role === "user" ? "You" : "Agent"}
                   </div>
                 </div>
-                <div className="bubble">{message.content}</div>
+                <div className="bubble">
+                  {message.role === "assistant" ? (
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  ) : (
+                    message.content
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -398,6 +449,16 @@ export default function ChatPage() {
             </button>
           </div>
         </section>
+        <p className="disclaimer">
+          세무톡은 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
+          문의하세요.{" "}
+          <span
+            className="source-link"
+            onClick={() => setShowSourceModal(true)}
+          >
+            데이터 출처
+          </span>
+        </p>
       </main>
     </div>
   );
