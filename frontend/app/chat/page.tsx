@@ -386,79 +386,74 @@ export default function ChatPage() {
         </div>
       )}
 
-      <main className="main-panel">
-        <header className="main-header">
-          <div>
-            <h3>{activeConversation?.title ?? "새로운 대화"}</h3>
-            <div className="meta">
-              {user ? `${user.display_name}님 환영합니다` : ""}
-            </div>
-          </div>
-          <div className="meta">세금/부동산/일반 질문을 분기합니다</div>
-        </header>
-
-        <section className="chat-window">
+      <main className="chat-panel">
+        {/* 메시지 영역 - 경계 없음 */}
+        <div className="message-area">
           {messages.length === 0 ? (
             <div className="empty-state">
-              <h4>멀티 에이전트 준비 완료</h4>
-              <p>
-                소득세/종부세 질문은 전문 에이전트가, 그 외 질문은 일반 LLM이
-                응답합니다.
-              </p>
+              <h4>무엇을 도와드릴까요?</h4>
+              <p>종합부동산세, 소득세 관련 질문을 해보세요.</p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`message ${message.role}`}>
-                <div>
-                  <div className="role">
-                    {message.role === "user" ? "You" : "Agent"}
+            <div className="message-list">
+              {messages.map((message) => (
+                <div key={message.id} className={`message-row ${message.role}`}>
+                  <div className="message-content">
+                    {message.role === "assistant" ? (
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    ) : (
+                      message.content
+                    )}
                   </div>
                 </div>
-                <div className="bubble">
-                  {message.role === "assistant" ? (
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                  ) : (
-                    message.content
-                  )}
+              ))}
+              {loading && (
+                <div className="message-row assistant">
+                  <div className="message-content">
+                    응답을 생성 중입니다{loadingDots}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
-          {loading ? (
-            <div className="message assistant">
-              <div>
-                <div className="role">Agent</div>
-              </div>
-              <div className="bubble">응답을 생성 중입니다{loadingDots}</div>
+              )}
+              <div ref={bottomRef} />
             </div>
-          ) : null}
-          <div ref={bottomRef} />
-        </section>
+          )}
+        </div>
 
-        <section className="composer">
-          <textarea
-            placeholder="질문을 입력하세요. Shift+Enter로 줄바꿈"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          {error ? <p className="error-text">{error}</p> : null}
-          <div className="composer-footer">
-            <button onClick={handleSend} disabled={loading}>
-              {loading ? "답변 생성 중" : "보내기"}
+        {/* 입력 바 - 박스 형태 */}
+        <div className="input-wrapper">
+          <div className="input-box">
+            <textarea
+              placeholder="무엇이든 물어보세요"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height =
+                  Math.min(e.target.scrollHeight, 150) + "px";
+              }}
+              onKeyDown={handleKeyDown}
+              rows={1}
+            />
+            <button
+              className="send-btn"
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+            >
+              ↑
             </button>
           </div>
-        </section>
-        <p className="disclaimer">
-          세무톡은 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
-          문의하세요.{" "}
-          <span
-            className="source-link"
-            onClick={() => setShowSourceModal(true)}
-          >
-            데이터 출처
-          </span>
-        </p>
+          {error && <p className="error-text">{error}</p>}
+          <p className="disclaimer">
+            세무톡은 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
+            문의하세요.{" "}
+            <span
+              className="source-link"
+              onClick={() => setShowSourceModal(true)}
+            >
+              데이터 출처
+            </span>
+          </p>
+        </div>
       </main>
     </div>
   );
