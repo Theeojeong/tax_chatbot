@@ -10,6 +10,7 @@
   --border: #d9d2c4;
   --shadow: 0 24px 50px rgba(32, 28, 20, 0.12);
   --shadow-soft: 0 8px 20px rgba(32, 28, 20, 0.08);
+  --user-message-bg: #f6eef6; /* 사용자 메시지 배경색 */
 }
 
 * {
@@ -79,6 +80,7 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
+  background: rgb(244, 241, 241);
 }
 
 .auth-card {
@@ -141,6 +143,20 @@ textarea {
   cursor: pointer;
 }
 
+.google-button-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.google-button-wrapper > div {
+  width: 100% !important;
+}
+
+.google-button-wrapper iframe {
+  width: 100% !important;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -155,7 +171,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  background: rgba(253, 251, 246, 0.9);
+  background: rgba(249, 247, 249, 0.9);
   backdrop-filter: blur(10px);
   animation: fadeUp 0.6s ease;
   overflow: hidden;
@@ -184,12 +200,35 @@ textarea {
   border: 1px solid var(--border);
   cursor: pointer;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 8px;
 }
 
 .sidebar button.primary {
-  background: linear-gradient(120deg, var(--accent-2), #f1a07e);
-  color: #fff;
+  background: transparent;
+  color: var(--muted);
   border: none;
+  font-weight: normal;
+}
+
+.sidebar button.primary:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+.sidebar button.secondary {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.sidebar button.secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
 }
 
 .conversation-list {
@@ -231,14 +270,29 @@ textarea {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.7);
+  background: transparent; /* 사이드바 배경과 일치 */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.02s ease; /* 호버 시 즉시 반응 */
   animation: fadeUp 0.4s ease;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: normal;
+}
+
+.conversation-item:hover {
+  background: rgba(0, 0, 0, 0.05); /* 호버 시 살짝 진해짐 */
+}
+
+.conversation-item.active,
+.conversation-item:focus,
+.conversation-item:active {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .conversation-info {
@@ -252,6 +306,12 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: normal;
+}
+
+.conversation-item.active .conversation-info strong {
+  font-weight: normal;
 }
 
 .conversation-actions {
@@ -259,15 +319,16 @@ textarea {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  background: transparent;
 }
 
 .menu-btn {
   width: 28px;
-  height: 26px;
+  height: 28px;
   padding: 0;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
+  border: none !important;
+  border-radius: 50%;
+  background: transparent !important;
   color: var(--muted);
   font-size: 1.1rem;
   font-weight: 700;
@@ -289,6 +350,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent !important;
 }
 
 .menu-btn-dots {
@@ -298,6 +360,13 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
 }
 
 .conversation-item:hover .menu-btn,
@@ -307,13 +376,15 @@ textarea {
 }
 
 .menu-btn:hover {
-  background: rgba(47, 154, 138, 0.12);
-  color: #2f9a8a;
+  background: rgba(0, 0, 0, 0.08) !important; /* 호버 시 배경 진해짐 */
+  color: var(--muted);
+  border: none;
+  outline: none;
 }
 
 .menu-btn:focus-visible {
-  outline: 2px solid rgba(47, 154, 138, 0.45);
-  outline-offset: 2px;
+  outline: none !important;
+  border: none;
 }
 
 .conversation-menu {
@@ -630,7 +701,7 @@ textarea {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--bg);
+  background: white;
   overflow: hidden;
 }
 
@@ -687,16 +758,16 @@ textarea {
 }
 
 .message-row.user .message-content {
-  background: linear-gradient(135deg, var(--accent), #4bb0a1);
-  color: white;
+  background: var(--user-message-bg);
+  color: #1d1b16;
   border-bottom-right-radius: 6px;
 }
 
 .message-row.assistant .message-content {
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid var(--border);
+  border: none;
   border-bottom-left-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 /* 마크다운 스타일 - message-content */
@@ -761,7 +832,7 @@ textarea {
 /* 입력 영역 wrapper */
 .input-wrapper {
   padding: 0.1px 5px 5px;
-  background: var(--bg);
+  background: white;
 }
 
 /* 입력 박스 */

@@ -256,7 +256,7 @@ export default function ChatPage() {
           </span>
         </div>
         <button className="primary" onClick={handleNewConversation}>
-          새 대화 시작
+          새 채팅
         </button>
         <div className="conversation-list">
           {conversations.map((conversation) => (
@@ -359,7 +359,7 @@ export default function ChatPage() {
         >
           <div className="source-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📚 RAG 학습 데이터 출처</h3>
+              <h3>RAG 학습 데이터 출처</h3>
               <button
                 className="close-btn"
                 onClick={() => setShowSourceModal(false)}

@@ -102,7 +102,7 @@ export default function LoginPage() {
     <div className="page-shell">
       <form className="auth-card" onSubmit={handleSubmit}>
         <div>
-          <h1>다시 만나서 반가워요.</h1>
+          <h1>만나서 반가워요.</h1>
           <p>세금 멀티 에이전트에 로그인해 대화를 이어가세요.</p>
         </div>
         <div>
