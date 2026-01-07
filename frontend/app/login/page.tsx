@@ -62,10 +62,11 @@ export default function LoginPage() {
         });
         const buttonDiv = document.getElementById("google-signin-button");
         if (buttonDiv) {
+          const width = buttonDiv.clientWidth;
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: "100%",
+            width: width ? width + "" : "100%",
             text: "signin_with",
             locale: "ko",
           });
