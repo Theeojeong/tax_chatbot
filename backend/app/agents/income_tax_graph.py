@@ -1,7 +1,7 @@
 from typing import Literal
 from typing_extensions import List, TypedDict
 
-from langchain import hub
+from langchain_classic import hub
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -110,15 +110,22 @@ def check_helpfulness(state: AgentState):
     return state
 
 
+def fallback_answer(state: AgentState):
+    """문서가 관련 없을 때 기본 답변 반환"""
+    return {"answer": "죄송합니다. 해당 질문에 대한 정보를 찾지 못했습니다. 다른 방식으로 질문해 주시거나, 세무 전문가에게 문의해 주세요."}
+
+
 graph_builder.add_node("retrieve", retrieve)
 graph_builder.add_node("generate", generate)
 graph_builder.add_node("rewrite", rewrite)
 graph_builder.add_node("check_helpfulness", check_helpfulness)
-
+graph_builder.add_node("fallback_answer", fallback_answer)
+####################################################################
 graph_builder.add_edge(START, "retrieve")
 graph_builder.add_conditional_edges(
-    "retrieve", check_doc_relevance, {"relevant": "generate", "irrelevant": END}
+    "retrieve", check_doc_relevance, {"relevant": "generate", "irrelevant": "fallback_answer"}
 )
+graph_builder.add_edge("fallback_answer", END)
 graph_builder.add_conditional_edges(
     "generate",
     check_hallucination,
@@ -131,7 +138,7 @@ graph_builder.add_conditional_edges(
     {"helpful": END, "unhelpful": "rewrite"},
 )
 graph_builder.add_edge("rewrite", "retrieve")
-
+####################################################################
 graph = graph_builder.compile()
 
 if __name__ == "__main__":

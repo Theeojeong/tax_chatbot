@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[3]  # tax_chatbot 루트
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -25,7 +25,7 @@ AZURE_OPENAI_SMALL_DEPLOYMENT = os.getenv(
 )
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.1")
-OPENAI_SMALL_MODEL = os.getenv("OPENAI_SMALL_MODEL", "gpt-5-mini")
+OPENAI_SMALL_MODEL = os.getenv("OPENAI_SMALL_MODEL", "gpt-5-nano")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large")
 
 INCOME_TAX_COLLECTION_DIR = BASE_DIR / "reference" / "income_tax_collection"

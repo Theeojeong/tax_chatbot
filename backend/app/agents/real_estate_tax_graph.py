@@ -1,6 +1,6 @@
 from datetime import date
 
-from langchain import hub
+from langchain_classic import hub
 from langchain_chroma import Chroma
 from langchain_tavily import TavilySearch
 from langchain_core.output_parsers import StrOutputParser

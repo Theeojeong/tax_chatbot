@@ -12,8 +12,10 @@ from ..core.config import (
 )
 
 
-def get_llm():
-    return ChatOpenAI(model=OPENAI_SMALL_MODEL, temperature=0)
+def get_llm(small: bool = True):
+    if small:
+        return ChatOpenAI(model=OPENAI_SMALL_MODEL, temperature=0)
+    return ChatOpenAI(model=OPENAI_MODEL, temperature=0)
 
 
 def get_embeddings():
