@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parents[3]  # tax_chatbot 루트
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

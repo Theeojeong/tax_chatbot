@@ -93,4 +93,3 @@ frontend/.env.*.local
 *.egg-info/
 test/
 documents/
-.backend/app/agents/income_tax_test.ipynb
