@@ -66,7 +66,7 @@ export default function LoginPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width + "" : "100%",
+            width: width ? width - 4 + "" : "100%",
             text: "signin_with",
             locale: "ko",
           });
