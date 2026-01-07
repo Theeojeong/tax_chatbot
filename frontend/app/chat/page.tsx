@@ -249,10 +249,9 @@ export default function ChatPage() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <h2>세무톡</h2>
+          <h2>부동산세법 AI</h2>
           <span>
-            종합부동산세법과 소득세법 데이터를 &nbsp;바탕으로 상담을
-            도와드립니다
+            부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
           </span>
         </div>
         <button className="primary" onClick={handleNewConversation}>
@@ -444,7 +443,7 @@ export default function ChatPage() {
           </div>
           {error && <p className="error-text">{error}</p>}
           <p className="disclaimer">
-            세무톡은 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
+            부동산세법 AI는 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
             문의하세요.{" "}
             <span
               className="source-link"

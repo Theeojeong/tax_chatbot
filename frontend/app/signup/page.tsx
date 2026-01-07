@@ -27,6 +27,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -63,10 +64,11 @@ export default function SignupPage() {
         });
         const buttonDiv = document.getElementById("google-signup-button");
         if (buttonDiv) {
+          const width = buttonDiv.clientWidth;
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: "100%",
+            width: width ? width - 10 + "" : "100%",
             text: "signup_with",
             locale: "ko",
           });
@@ -83,6 +85,12 @@ export default function SignupPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+
+    if (password !== passwordConfirm) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -143,6 +151,18 @@ export default function SignupPage() {
             placeholder="8자 이상"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="passwordConfirm">비밀번호 확인</label>
+          <input
+            id="passwordConfirm"
+            name="passwordConfirm"
+            type="password"
+            placeholder="비밀번호를 다시 입력하세요"
+            value={passwordConfirm}
+            onChange={(event) => setPasswordConfirm(event.target.value)}
             required
           />
         </div>

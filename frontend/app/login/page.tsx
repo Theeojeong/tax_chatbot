@@ -66,7 +66,7 @@ export default function LoginPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width - 4 + "" : "100%",
+            width: width ? width - 10 + "" : "100%",
             text: "signin_with",
             locale: "ko",
           });
@@ -104,7 +104,9 @@ export default function LoginPage() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <div>
           <h1>만나서 반가워요.</h1>
-          <p>세금 멀티 에이전트에 로그인해 대화를 이어가세요.</p>
+          <p>
+            부동산세법과 소득세법을 학습한 챗봇에 로그인해 대화를 이어가세요.
+          </p>
         </div>
         <div>
           <label htmlFor="email">이메일</label>
