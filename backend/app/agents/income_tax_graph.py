@@ -24,7 +24,10 @@ class AgentState(TypedDict):
     query: str
     context: List[Document]
     answer: str
+    chat_history: list[dict]
 
+
+llm = get_llm()
 
 graph_builder = StateGraph(AgentState)
 
@@ -32,17 +35,6 @@ graph_builder = StateGraph(AgentState)
 def retrieve(state: AgentState):
     docs = retriever.invoke(state["query"])
     return {"context": docs}
-
-
-llm = get_llm()
-
-generate_prompt = hub.pull("rlm/rag-prompt")
-
-
-def generate(state: AgentState):
-    rag_chain = generate_prompt | llm
-    response = rag_chain.invoke({"question": state["query"], "context": state["context"]})
-    return {"answer": response.content}
 
 
 doc_relevance_prompt = hub.pull("langchain-ai/rag-document-relevance")
@@ -54,6 +46,31 @@ def check_doc_relevance(state: AgentState) -> Literal["relevant", "irrelevant"]:
         {"question": state["query"], "documents": state["context"]}
     )
     return "relevant" if response["Score"] == 1 else "irrelevant"
+
+
+generate_prompt = PromptTemplate(
+    input_variables=["context", "question", "chat_history"],  # chat_history 추가
+    template="""You are an assistant for question-answering tasks. 
+        Use the following pieces of retrieved context to answer the question. 
+        If you don't know the answer, just say that you don't know. 
+        Use three sentences maximum and keep the answer concise.
+        chat_history: {chat_history} 
+        Question: {question}
+        Context: {context}
+        Answer:""",
+)
+
+
+def generate(state: AgentState):
+    rag_chain = generate_prompt | llm
+    response = rag_chain.invoke(
+        {
+            "question": state["query"],
+            "context": state["context"],
+            "chat_history": state["chat_history"],
+        }
+    )
+    return {"answer": response.content}
 
 
 dictionary = ["사람과 관련된 표현 -> 거주자"]
@@ -86,7 +103,9 @@ student_answer: {student_answer}
 )
 
 
-def check_hallucination(state: AgentState) -> Literal["hallucinated", "not hallucinated"]:
+def check_hallucination(
+    state: AgentState,
+) -> Literal["hallucinated", "not hallucinated"]:
     context = [doc.page_content for doc in state["context"]]
     hallucination_chain = hallucination_prompt | llm | StrOutputParser()
     response = hallucination_chain.invoke(
@@ -112,7 +131,9 @@ def check_helpfulness(state: AgentState):
 
 def fallback_answer(state: AgentState):
     """문서가 관련 없을 때 기본 답변 반환"""
-    return {"answer": "죄송합니다. 해당 질문에 대한 정보를 찾지 못했습니다. 다른 방식으로 질문해 주시거나, 세무 전문가에게 문의해 주세요."}
+    return {
+        "answer": "죄송합니다. 해당 질문에 대한 정보를 찾지 못했습니다. 다른 방식으로 질문해 주시거나, 세무 전문가에게 문의해 주세요."
+    }
 
 
 graph_builder.add_node("retrieve", retrieve)
@@ -123,7 +144,9 @@ graph_builder.add_node("fallback_answer", fallback_answer)
 ####################################################################
 graph_builder.add_edge(START, "retrieve")
 graph_builder.add_conditional_edges(
-    "retrieve", check_doc_relevance, {"relevant": "generate", "irrelevant": "fallback_answer"}
+    "retrieve",
+    check_doc_relevance,
+    {"relevant": "generate", "irrelevant": "fallback_answer"},
 )
 graph_builder.add_edge("fallback_answer", END)
 graph_builder.add_conditional_edges(

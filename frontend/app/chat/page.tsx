@@ -245,17 +245,52 @@ export default function ChatPage() {
     }
   };
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isSidebarOpen ? "" : "sidebar-closed"}`}>
       <aside className="sidebar">
-        <div className="brand">
-          <h2>부동산세법 AI</h2>
-          <span>
-            부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
-          </span>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+          <div className="brand" style={{ flex: 1 }}>
+            <h2>세무톡</h2>
+            <span>
+              부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
+            </span>
+          </div>
+          <button
+            className="close-sidebar-btn"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title={isSidebarOpen ? "사이드바 닫기" : "사이드바 열기"}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+          </button>
         </div>
         <button className="primary" onClick={handleNewConversation}>
-          새 채팅
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span>새 채팅</span>
         </button>
         <div className="conversation-list">
           {conversations.map((conversation) => (
@@ -274,11 +309,14 @@ export default function ChatPage() {
                   )}
                 </span>
               </div>
+
+              {/* 사이드바가 열려있을 때만 메뉴 버튼 표시 (CSS로 제어) */}
               <div className="conversation-actions">
                 <button
                   className="menu-btn"
                   data-conversation-menu-button={conversation.id}
                   onClick={(event) => {
+                    if (!isSidebarOpen) return; // 사이드바 닫혀있으면 메뉴 클릭 방지
                     event.stopPropagation();
                     const button = event.currentTarget;
                     const sidebar = button.closest(".sidebar") as HTMLElement;
@@ -341,13 +379,33 @@ export default function ChatPage() {
           ))}
           {conversations.length === 0 ? (
             <div className="conversation-item">
-              <strong>아직 대화가 없어요</strong>
-              <span>새 대화를 눌러 시작하세요.</span>
+              {isSidebarOpen ? (
+                <>
+                  <strong>아직 대화가 없어요</strong>
+                  <span>새 대화를 눌러 시작하세요.</span>
+                </>
+              ) : (
+                <span style={{ fontSize: "0.8rem", opacity: 0.5 }}>...</span>
+              )}
             </div>
           ) : null}
         </div>
         <button className="secondary" onClick={handleLogout}>
-          로그아웃
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>로그아웃</span>
         </button>
       </aside>
 
@@ -385,7 +443,7 @@ export default function ChatPage() {
         </div>
       )}
 
-      <main className="chat-panel">
+      <main className="chat-panel" style={{ position: "relative" }}>
         {/* 메시지 영역 - 경계 없음 */}
         <div className="message-area">
           {messages.length === 0 ? (
@@ -443,7 +501,7 @@ export default function ChatPage() {
           </div>
           {error && <p className="error-text">{error}</p>}
           <p className="disclaimer">
-            부동산세법 AI는 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
+            세무톡은 실수를 할 수 있습니다. 정확한 세무 상담은 전문가에게
             문의하세요.{" "}
             <span
               className="source-link"

@@ -12,13 +12,16 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
 def _get_conversation(db: Session, user_id: int, conversation_id: int) -> Conversation:
-    conversation = (
+
+    conversation = ( # -> 채팅방
         db.query(Conversation)
         .filter(Conversation.id == conversation_id, Conversation.user_id == user_id)
-        .first()
+        .first() # -> 대화는 어차피 1개지만 객체로 받기 위해 추가
     )
     if not conversation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="채팅방을 찾을 수 없습니다."
+        )
     return conversation
 
 
@@ -79,6 +82,7 @@ def create_message(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     conversation = _get_conversation(db, current_user.id, conversation_id)
 
     user_message = Message(
@@ -93,8 +97,19 @@ def create_message(
     db.flush()
 
     try:
-        result = multi_agent_graph.invoke({"query": payload.content})
+        all_messages = conversation.messages
+        chat_history = []
+        
+        for msg in all_messages:
+            if msg.id != user_message.id:
+                chat_history.append({"role": msg.role, "content": msg.content})
+
+        result = multi_agent_graph.invoke({
+            "query": payload.content,
+            "chat_history": chat_history
+        })
         answer = result.get("answer") or "답변을 생성하지 못했습니다."
+
     except Exception as exc:
         db.rollback()
         raise HTTPException(
