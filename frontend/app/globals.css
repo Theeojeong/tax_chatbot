@@ -155,7 +155,7 @@ textarea {
 }
 
 .google-button-wrapper iframe {
-  width: 100% !important;
+  /* width: 100% !important; 제거 - JS에서 제어 */
 }
 
 .app-shell {

@@ -70,7 +70,7 @@ export default function SignupPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width - 4 + "" : "100%", // 잘림 방지용 여백 -4px
+            width: width ? width + "" : "100%", // exact width
             text: "signup_with",
             locale: "ko",
           });
