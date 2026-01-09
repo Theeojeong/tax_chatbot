@@ -250,18 +250,36 @@ export default function ChatPage() {
   return (
     <div className={`app-shell ${isSidebarOpen ? "" : "sidebar-closed"}`}>
       <aside className="sidebar">
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-          <div className="brand" style={{ flex: 1 }}>
-            <h2>세무톡</h2>
-            <span>
-              부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
-            </span>
+        {/* 고정된 상단 헤더 영역 */}
+        <div className="sidebar-top">
+          <div className="sidebar-header">
+            <div className="brand">
+              <h2>세무톡</h2>
+              <span>
+                부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
+              </span>
+            </div>
+            <button
+              className="close-sidebar-btn"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? "사이드바 닫기" : "사이드바 열기"}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            </button>
           </div>
-          <button
-            className="close-sidebar-btn"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            title={isSidebarOpen ? "사이드바 닫기" : "사이드바 열기"}
-          >
+          <button className="primary" onClick={handleNewConversation}>
             <svg
               width="24"
               height="24"
@@ -272,141 +290,134 @@ export default function ChatPage() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <line x1="9" y1="3" x2="9" y2="21" />
+              <path d="M12 5v14M5 12h14" />
             </svg>
+            <span>새 채팅</span>
           </button>
         </div>
-        <button className="primary" onClick={handleNewConversation}>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span>새 채팅</span>
-        </button>
-        <div className="conversation-list">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              className={`conversation-item ${
-                conversation.id === activeId ? "active" : ""
-              } ${menuOpenId === conversation.id ? "menu-open" : ""}`}
-              onClick={() => setActiveId(conversation.id)}
-            >
-              <div className="conversation-info">
-                <strong>{conversation.title}</strong>
-                <span>
-                  {new Date(conversation.updated_at).toLocaleDateString(
-                    "ko-KR"
-                  )}
-                </span>
-              </div>
 
-              {/* 사이드바가 열려있을 때만 메뉴 버튼 표시 (CSS로 제어) */}
-              <div className="conversation-actions">
-                <button
-                  className="menu-btn"
-                  data-conversation-menu-button={conversation.id}
-                  onClick={(event) => {
-                    if (!isSidebarOpen) return; // 사이드바 닫혀있으면 메뉴 클릭 방지
-                    event.stopPropagation();
-                    const button = event.currentTarget;
-                    const sidebar = button.closest(".sidebar") as HTMLElement;
-                    const menuHeight = 50; // 대략적인 메뉴 높이
-                    const gap = 6;
+        {/* 스크롤 영역 (헤더/푸터 높이만큼 패딩 처리됨) */}
+        <div className="sidebar-scroll-area">
+          <div className="conversation-list">
+            {conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className={`conversation-item ${
+                  conversation.id === activeId ? "active" : ""
+                } ${menuOpenId === conversation.id ? "menu-open" : ""}`}
+                onClick={() => setActiveId(conversation.id)}
+              >
+                <div className="conversation-info">
+                  <strong>{conversation.title}</strong>
+                  <span>
+                    {new Date(conversation.updated_at).toLocaleDateString(
+                      "ko-KR"
+                    )}
+                  </span>
+                </div>
 
-                    if (sidebar) {
-                      const buttonRect = button.getBoundingClientRect();
-                      const sidebarRect = sidebar.getBoundingClientRect();
-                      const spaceBelow = sidebarRect.bottom - buttonRect.bottom;
-                      const spaceAbove = buttonRect.top - sidebarRect.top;
+                <div className="conversation-actions">
+                  <button
+                    className="menu-btn"
+                    data-conversation-menu-button={conversation.id}
+                    onClick={(event) => {
+                      if (!isSidebarOpen) return; // 사이드바 닫혀있으면 메뉴 클릭 방지
+                      event.stopPropagation();
+                      const button = event.currentTarget;
+                      const sidebar = button.closest(".sidebar") as HTMLElement;
+                      const menuHeight = 50; // 대략적인 메뉴 높이
+                      const gap = 6;
 
-                      // 아래 공간이 충분하면 아래로, 부족하면 위로
-                      if (spaceBelow >= menuHeight + gap) {
-                        setMenuDirection("down");
-                      } else if (spaceAbove >= menuHeight + gap) {
-                        setMenuDirection("up");
-                      } else {
-                        // 양쪽 모두 부족하면 더 많은 공간이 있는 쪽으로
-                        setMenuDirection(
-                          spaceBelow > spaceAbove ? "down" : "up"
-                        );
+                      if (sidebar) {
+                        const buttonRect = button.getBoundingClientRect();
+                        const sidebarRect = sidebar.getBoundingClientRect();
+                        const spaceBelow =
+                          sidebarRect.bottom - buttonRect.bottom;
+                        const spaceAbove = buttonRect.top - sidebarRect.top;
+
+                        // 아래 공간이 충분하면 아래로, 부족하면 위로
+                        if (spaceBelow >= menuHeight + gap) {
+                          setMenuDirection("down");
+                        } else if (spaceAbove >= menuHeight + gap) {
+                          setMenuDirection("up");
+                        } else {
+                          // 양쪽 모두 부족하면 더 많은 공간이 있는 쪽으로
+                          setMenuDirection(
+                            spaceBelow > spaceAbove ? "down" : "up"
+                          );
+                        }
                       }
-                    }
 
-                    setMenuOpenId((prev) =>
-                      prev === conversation.id ? null : conversation.id
-                    );
-                  }}
-                  title="대화 메뉴"
-                  aria-haspopup="menu"
-                  aria-expanded={menuOpenId === conversation.id}
-                  aria-label="대화 메뉴"
-                >
-                  <span className="menu-btn-dots">⋯</span>
-                </button>
-                {menuOpenId === conversation.id ? (
-                  <div
-                    className={`conversation-menu ${
-                      menuDirection === "up" ? "menu-up" : "menu-down"
-                    }`}
-                    data-conversation-menu={conversation.id}
-                    role="menu"
+                      setMenuOpenId((prev) =>
+                        prev === conversation.id ? null : conversation.id
+                      );
+                    }}
+                    title="대화 메뉴"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpenId === conversation.id}
+                    aria-label="대화 메뉴"
                   >
-                    <button
-                      className="menu-item delete"
-                      role="menuitem"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setMenuOpenId(null);
-                        handleDeleteConversation(conversation.id);
-                      }}
+                    <span className="menu-btn-dots">⋯</span>
+                  </button>
+                  {menuOpenId === conversation.id ? (
+                    <div
+                      className={`conversation-menu ${
+                        menuDirection === "up" ? "menu-up" : "menu-down"
+                      }`}
+                      data-conversation-menu={conversation.id}
+                      role="menu"
                     >
-                      대화 삭제
-                    </button>
-                  </div>
-                ) : null}
+                      <button
+                        className="menu-item delete"
+                        role="menuitem"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setMenuOpenId(null);
+                          handleDeleteConversation(conversation.id);
+                        }}
+                      >
+                        대화 삭제
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))}
-          {conversations.length === 0 ? (
-            <div className="conversation-item">
-              {isSidebarOpen ? (
-                <>
-                  <strong>아직 대화가 없어요</strong>
-                  <span>새 대화를 눌러 시작하세요.</span>
-                </>
-              ) : (
-                <span style={{ fontSize: "0.8rem", opacity: 0.5 }}>...</span>
-              )}
-            </div>
-          ) : null}
+            ))}
+            {conversations.length === 0 ? (
+              <div className="conversation-item no-hover">
+                {isSidebarOpen ? (
+                  <>
+                    <strong>아직 대화가 없어요</strong>
+                    <span>새 채팅을 눌러 시작하세요.</span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: "0.8rem", opacity: 0.5 }}>...</span>
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <button className="secondary" onClick={handleLogout}>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          <span>로그아웃</span>
-        </button>
+
+        {/* 고정된 하단 푸터 영역 */}
+        <div className="sidebar-bottom">
+          <button className="secondary" onClick={handleLogout}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>로그아웃</span>
+          </button>
+        </div>
       </aside>
 
       {showSourceModal && (
@@ -507,7 +518,7 @@ export default function ChatPage() {
               className="source-link"
               onClick={() => setShowSourceModal(true)}
             >
-              데이터 출처
+              학습 데이터 출처
             </span>
           </p>
         </div>
