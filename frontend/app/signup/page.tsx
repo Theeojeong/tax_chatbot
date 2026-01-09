@@ -305,6 +305,49 @@ export default function SignupPage() {
               )}
             </button>
           </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginTop: "8px",
+              fontSize: "0.85rem",
+              color:
+                passwordConfirm.length === 0
+                  ? "var(--muted)" // Gray when empty
+                  : password === passwordConfirm
+                  ? "#2E7D32" // Green when valid
+                  : "#D32F2F", // Red when invalid
+              transition: "color 0.2s ease",
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {passwordConfirm.length === 0 || password === passwordConfirm ? (
+                <polyline points="20 6 9 17 4 12" />
+              ) : (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              )}
+            </svg>
+            <span>
+              {passwordConfirm.length === 0
+                ? "비밀번호를 다시 입력해주세요"
+                : password === passwordConfirm
+                ? "비밀번호가 일치합니다"
+                : "비밀번호가 일치하지 않습니다"}
+            </span>
+          </div>
         </div>
         {error ? <p className="error-text">{error}</p> : null}
         <button type="submit" disabled={loading}>
@@ -327,6 +370,56 @@ export default function SignupPage() {
           이미 계정이 있나요? 로그인
         </Link>
       </form>
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "4px solid #f3f3f3",
+              borderTop: "4px solid var(--accent)",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              marginBottom: "16px",
+            }}
+          />
+          <span
+            style={{
+              color: "var(--foreground)",
+              fontSize: "1rem",
+              fontWeight: 500,
+            }}
+          >
+            가입 처리 중...
+          </span>
+          <style jsx>{`
+            @keyframes spin {
+              0% {
+                transform: rotate(0deg);
+              }
+              100% {
+                transform: rotate(360deg);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
