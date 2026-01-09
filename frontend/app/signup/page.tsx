@@ -28,6 +28,8 @@ export default function SignupPage() {
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -68,7 +70,7 @@ export default function SignupPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width + "" : "100%", // -10px 제거
+            width: width ? width - 4 + "" : "100%", // 잘림 방지용 여백 -4px
             text: "signup_with",
             locale: "ko",
           });
@@ -144,16 +146,65 @@ export default function SignupPage() {
         </div>
         <div>
           <label htmlFor="password">비밀번호</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="8자 이상"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            minLength={8}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="8자 이상"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={8}
+              style={{ paddingRight: "40px" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                padding: "0",
+                cursor: "pointer",
+                color: "var(--muted)",
+                display: "flex",
+              }}
+            >
+              {showPassword ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
           <div
             style={{
               display: "flex",
@@ -195,16 +246,65 @@ export default function SignupPage() {
         </div>
         <div>
           <label htmlFor="passwordConfirm">비밀번호 확인</label>
-          <input
-            id="passwordConfirm"
-            name="passwordConfirm"
-            type="password"
-            placeholder="비밀번호를 다시 입력하세요"
-            value={passwordConfirm}
-            onChange={(event) => setPasswordConfirm(event.target.value)}
-            required
-            minLength={8}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              id="passwordConfirm"
+              name="passwordConfirm"
+              type={showPasswordConfirm ? "text" : "password"}
+              placeholder="비밀번호를 다시 입력하세요"
+              value={passwordConfirm}
+              onChange={(event) => setPasswordConfirm(event.target.value)}
+              required
+              minLength={8}
+              style={{ paddingRight: "40px" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                padding: "0",
+                cursor: "pointer",
+                color: "var(--muted)",
+                display: "flex",
+              }}
+            >
+              {showPasswordConfirm ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
         {error ? <p className="error-text">{error}</p> : null}
         <button type="submit" disabled={loading}>

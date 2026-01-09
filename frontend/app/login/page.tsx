@@ -66,7 +66,7 @@ export default function LoginPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width + "" : "100%", // -10px 제거
+            width: width ? width - 4 + "" : "100%", // 잘림 방지용 여백 -4px
             text: "signin_with",
             locale: "ko",
           });
