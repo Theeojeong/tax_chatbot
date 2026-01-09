@@ -66,7 +66,7 @@ export default function LoginPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width - 10 + "" : "100%",
+            width: width ? width + "" : "100%", // -10px 제거
             text: "signin_with",
             locale: "ko",
           });
@@ -130,6 +130,7 @@ export default function LoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            minLength={8}
           />
         </div>
         {error ? <p className="error-text">{error}</p> : null}

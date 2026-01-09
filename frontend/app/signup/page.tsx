@@ -68,7 +68,7 @@ export default function SignupPage() {
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width - 10 + "" : "100%",
+            width: width ? width + "" : "100%", // -10px 제거
             text: "signup_with",
             locale: "ko",
           });
@@ -152,7 +152,46 @@ export default function SignupPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            minLength={8}
           />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginTop: "8px",
+              fontSize: "0.85rem",
+              color:
+                password.length === 0
+                  ? "var(--muted)" // Gray when empty
+                  : password.length >= 8 && password.length <= 32
+                  ? "#2E7D32" // Green when valid
+                  : "#D32F2F", // Red when invalid
+              transition: "color 0.2s ease",
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {password.length === 0 ||
+              (password.length >= 8 && password.length <= 32) ? (
+                <polyline points="20 6 9 17 4 12" />
+              ) : (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              )}
+            </svg>
+            <span>8자 이상 32자 이하 입력 (공백 제외)</span>
+          </div>
         </div>
         <div>
           <label htmlFor="passwordConfirm">비밀번호 확인</label>
@@ -164,6 +203,7 @@ export default function SignupPage() {
             value={passwordConfirm}
             onChange={(event) => setPasswordConfirm(event.target.value)}
             required
+            minLength={8}
           />
         </div>
         {error ? <p className="error-text">{error}</p> : null}
