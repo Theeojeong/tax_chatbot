@@ -53,7 +53,6 @@ Original Question: {query}
 Rewritten Question:"""
 )
 
-
 def rewrite_before_retrieve(state: AgentState):
     rewrite_chain = rewrite_prompt | llm | StrOutputParser()
     response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
