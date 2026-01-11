@@ -27,7 +27,7 @@ graph_builder = StateGraph(AgentState)
 embedding_function = get_embeddings()
 vector_store = Chroma(
     embedding_function=embedding_function,
-    collection_name="real_estate_tax",
+    collection_name="real_estate",
     persist_directory=str(REAL_ESTATE_TAX_COLLECTION_DIR),
 )
 retriever = vector_store.as_retriever(search_kwargs={"k": 3})

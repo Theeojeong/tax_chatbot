@@ -7,14 +7,23 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langgraph.graph import END, START, StateGraph
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+os.getenv("LANGSMITH_API_KEY")
+os.environ["LANGCHAIN_PROJECT"] = "tax-chatbot"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
 from ..core.config import INCOME_TAX_COLLECTION_DIR
 from .llm import get_embeddings, get_llm
 
+
 embedding_function = get_embeddings()
 vector_store = Chroma(
     embedding_function=embedding_function,
-    collection_name="income_tax_collection",
+    collection_name="income_tax",
     persist_directory=str(INCOME_TAX_COLLECTION_DIR),
 )
 retriever = vector_store.as_retriever(search_kwargs={"k": 3})
@@ -28,13 +37,14 @@ class AgentState(TypedDict):
 
 
 llm = get_llm()
+small_llm = get_llm(small=True)
 
 graph_builder = StateGraph(AgentState)
 
 
 dictionary = ["사람과 관련된 표현 -> 거주자"]
 
-rewrite_prompt = PromptTemplate.from_template(
+rewrite_before_retrieve_prompt = PromptTemplate.from_template(
     """
 You are an intelligent search query optimizer. 
 Your job is to rewrite the user's question to be more effective for keyword-based or semantic search in a tax law database.
@@ -46,16 +56,13 @@ Follow these rules:
 4. **Keep Meaning**: Do not change the original intent of the user.
 5. **Output ONLY the rewritten query**: Do not add any explanations or prefixes.
 
-Dictionary:
-{dictionary}
-
 Original Question: {query}
 Rewritten Question:"""
 )
 
 def rewrite_before_retrieve(state: AgentState):
-    rewrite_chain = rewrite_prompt | llm | StrOutputParser()
-    response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
+    rewrite_chain = rewrite_before_retrieve_prompt | llm | StrOutputParser()
+    response = rewrite_chain.invoke({"query": state["query"]})
     return {"query": response}
 
 
@@ -68,7 +75,7 @@ doc_relevance_prompt = hub.pull("langchain-ai/rag-document-relevance")
 
 
 def check_doc_relevance(state: AgentState) -> Literal["relevant", "irrelevant"]:
-    doc_relevance_chain = doc_relevance_prompt | llm
+    doc_relevance_chain = doc_relevance_prompt | small_llm
     response = doc_relevance_chain.invoke(
         {"question": state["query"], "documents": state["context"]}
     )
@@ -100,6 +107,34 @@ def generate(state: AgentState):
     return {"answer": response.content}
 
 
+rewrite_prompt = PromptTemplate.from_template(
+    f"""
+너는 대한민국 세법(소득세법) 문서를 검색하기 위한 
+"검색 질의 생성기" 역할을 한다.
+
+목표:
+- 사용자의 질문을 그대로 답변하지 말고
+- 소득세법 문서에서 관련 조문을 가장 잘 찾을 수 있도록
+  검색에 최적화된 질의로 재작성하라.
+
+규칙:
+1. 가능한 경우 반드시 "제X조", "제X조의Y", "제X항", "제X호" 형태를 사용하라.
+2. 세법에서 사용되는 공식 용어를 우선 사용하라.
+   (예: 세율, 과세표준, 산출세액, 필요경비, 예정신고 등)
+3. 불필요한 조사, 존댓말, 질문 표현은 제거하라.
+4. 계산식, 표, 요건, 세율과 관련된 질문이면 해당 개념을 명시하라.
+5. 질문이 모호하면 가장 가능성이 높은 법령 키워드 중심으로 재작성하라.
+6. 절대 답변을 생성하지 말고, 검색용 질의만 출력하라.
+
+사용자 질문:
+{query}
+
+사용자의 질문으로 rag retrieve된 문서:
+{dictionary}
+
+검색용 질의:"""
+)
+
 def rewrite(state: AgentState):
     rewrite_chain = rewrite_prompt | llm | StrOutputParser()
     response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
@@ -123,7 +158,7 @@ def check_hallucination(
     state: AgentState,
 ) -> Literal["hallucinated", "not hallucinated"]:
     context = [doc.page_content for doc in state["context"]]
-    hallucination_chain = hallucination_prompt | llm | StrOutputParser()
+    hallucination_chain = hallucination_prompt | small_llm | StrOutputParser()
     response = hallucination_chain.invoke(
         {"student_answer": state["answer"], "documents": context}
     )
