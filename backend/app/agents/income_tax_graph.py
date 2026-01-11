@@ -32,6 +32,34 @@ llm = get_llm()
 graph_builder = StateGraph(AgentState)
 
 
+dictionary = ["사람과 관련된 표현 -> 거주자"]
+
+rewrite_prompt = PromptTemplate.from_template(
+    """
+You are an intelligent search query optimizer. 
+Your job is to rewrite the user's question to be more effective for keyword-based or semantic search in a tax law database.
+
+Follow these rules:
+1. **Resolve Ambiguity**: Replace pronouns (e.g., "it", "that", "he") with specific names or entities from the context if possible. (Note: Only current query is provided here, but interpret clearly).
+2. **Use Professional Terminology**: Use the provided dictionary to map common words to legal/tax terms.
+3. **Be Specific**: Add necessary context to make the query standalone.
+4. **Keep Meaning**: Do not change the original intent of the user.
+5. **Output ONLY the rewritten query**: Do not add any explanations or prefixes.
+
+Dictionary:
+{dictionary}
+
+Original Question: {query}
+Rewritten Question:"""
+)
+
+
+def rewrite_before_retrieve(state: AgentState):
+    rewrite_chain = rewrite_prompt | llm | StrOutputParser()
+    response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
+    return {"query": response}
+
+
 def retrieve(state: AgentState):
     docs = retriever.invoke(state["query"])
     return {"context": docs}
@@ -71,17 +99,6 @@ def generate(state: AgentState):
         }
     )
     return {"answer": response.content}
-
-
-dictionary = ["사람과 관련된 표현 -> 거주자"]
-
-rewrite_prompt = PromptTemplate.from_template(
-    """
-사용자의 질문을 보고, 우리의 사전을 참고해서 사용자의 질문을 변경해주세요
-사전: {dictionary}
-질문: {query}
-"""
-)
 
 
 def rewrite(state: AgentState):
