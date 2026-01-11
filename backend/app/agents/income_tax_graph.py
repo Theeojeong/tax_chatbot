@@ -158,7 +158,8 @@ graph_builder.add_node("generate", generate)
 graph_builder.add_node("rewrite", rewrite)
 graph_builder.add_node("check_helpfulness", check_helpfulness)
 graph_builder.add_node("fallback_answer", fallback_answer)
-####################################################################
+
+
 graph_builder.add_edge(START, "retrieve")
 graph_builder.add_conditional_edges(
     "retrieve",
@@ -171,14 +172,14 @@ graph_builder.add_conditional_edges(
     check_hallucination,
     {"not hallucinated": "check_helpfulness", "hallucinated": "generate"},
 )
-
 graph_builder.add_conditional_edges(
     "check_helpfulness",
     check_helpfulness_grader,
     {"helpful": END, "unhelpful": "rewrite"},
 )
 graph_builder.add_edge("rewrite", "retrieve")
-####################################################################
+
+
 graph = graph_builder.compile()
 
 if __name__ == "__main__":
