@@ -108,7 +108,7 @@ def generate(state: AgentState):
 
 
 rewrite_prompt = PromptTemplate.from_template(
-    f"""
+    """
 너는 대한민국 세법(소득세법) 문서를 검색하기 위한 
 "검색 질의 생성기" 역할을 한다.
 
