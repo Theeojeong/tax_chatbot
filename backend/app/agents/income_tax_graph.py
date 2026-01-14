@@ -32,6 +32,7 @@ class AgentState(TypedDict):
     context: List[Document]
     answer: str
     chat_history: list[dict]
+    retry_count: int  # 재시도 횟수 추적
 
 
 llm = get_llm()
@@ -136,7 +137,8 @@ rewrite_prompt = PromptTemplate.from_template(
 def rewrite(state: AgentState):
     rewrite_chain = rewrite_prompt | llm | StrOutputParser()
     response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
-    return {"query": response}
+    retry_count = state.get("retry_count", 0) + 1
+    return {"query": response, "retry_count": retry_count}
 
 
 hallucination_prompt = PromptTemplate.from_template(
@@ -154,7 +156,10 @@ student_answer: {student_answer}
 
 def check_hallucination(
     state: AgentState,
-) -> Literal["hallucinated", "not hallucinated"]:
+) -> Literal["hallucinated", "not hallucinated", "max_retries"]:
+    if state.get("retry_count", 0) > 2:
+        return "max_retries"
+
     context = [doc.page_content for doc in state["context"]]
     hallucination_chain = hallucination_prompt | small_llm | StrOutputParser()
     response = hallucination_chain.invoke(
@@ -166,7 +171,10 @@ def check_hallucination(
 helpfulness_prompt = hub.pull("langchain-ai/rag-answer-helpfulness")
 
 
-def check_helpfulness_grader(state: AgentState) -> Literal["helpful", "unhelpful"]:
+def check_helpfulness_grader(state: AgentState) -> Literal["helpful", "unhelpful", "max_retries"]:
+    if state.get("retry_count", 0) > 2:
+        return "max_retries"
+        
     helpfulness_chain = helpfulness_prompt | llm
     response = helpfulness_chain.invoke(
         {"question": state["query"], "student_answer": state["answer"]}
@@ -202,12 +210,20 @@ graph_builder.add_edge("fallback_answer", END)
 graph_builder.add_conditional_edges(
     "generate",
     check_hallucination,
-    {"not hallucinated": "check_helpfulness", "hallucinated": "generate"},
+    {
+        "not hallucinated": "check_helpfulness",
+        "hallucinated": "rewrite",
+        "max_retries": "fallback_answer",
+    },
 )
 graph_builder.add_conditional_edges(
     "check_helpfulness",
     check_helpfulness_grader,
-    {"helpful": END, "unhelpful": "rewrite"},
+    {
+        "helpful": END,
+        "unhelpful": "rewrite",
+        "max_retries": "fallback_answer",
+    },
 )
 graph_builder.add_edge("rewrite", "retrieve")
 
