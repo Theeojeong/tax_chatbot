@@ -12,9 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-os.getenv("LANGSMITH_API_KEY")
-os.environ["LANGCHAIN_PROJECT"] = "tax-chatbot"
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
+
 
 from ..core.config import INCOME_TAX_COLLECTION_DIR
 from .llm import get_embeddings, get_llm

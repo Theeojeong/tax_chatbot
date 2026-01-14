@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# LangSmith Configuration
+os.environ["LANGCHAIN_PROJECT"] = "tax-chatbot"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
