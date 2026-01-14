@@ -1,6 +1,8 @@
+import json
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..agents.multi_agent_graph import graph as multi_agent_graph
@@ -75,14 +77,13 @@ def list_messages(
     return conversation.messages
 
 
-@router.post("/{conversation_id}/messages", response_model=ChatResponse)
-def create_message(
+@router.post("/{conversation_id}/messages")
+async def create_message(
     conversation_id: int,
     payload: MessageCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
     conversation = _get_conversation(db, current_user.id, conversation_id)
 
     user_message = Message(
@@ -96,40 +97,50 @@ def create_message(
     conversation.updated_at = datetime.utcnow()
     db.flush()
 
-    try:
-        all_messages = conversation.messages
-        chat_history = []
-        
-        for msg in all_messages:
-            if msg.id != user_message.id:
-                chat_history.append({"role": msg.role, "content": msg.content})
+    all_messages = conversation.messages
+    chat_history = []
+    
+    for msg in all_messages:
+        if msg.id != user_message.id:
+            chat_history.append({"role": msg.role, "content": msg.content})
 
-        result = multi_agent_graph.invoke({
-            "query": payload.content,
-            "chat_history": chat_history
-        })
-        answer = result.get("answer") or "답변을 생성하지 못했습니다."
+    async def event_generator():
+        full_answer = ""
+        try:
+            async for event in multi_agent_graph.astream_events(
+                {"query": payload.content, "chat_history": chat_history},
+                version="v2"
+            ):
+                if event["event"] == "on_chat_model_stream":
+                    # router의 structured output 제외 (generate, llm 노드의 출력만 포함)
+                    tags = event.get("tags", [])
+                    name = event.get("name", "")
+                    
+                    metadata = event.get("metadata", {})
+                    if metadata.get("langgraph_node") == "__start__":
+                        continue
+                    
+                    chunk = event["data"]["chunk"].content
+                    if chunk:
+                        full_answer += chunk
+                        yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
+            
+            assistant_message = Message(
+                conversation_id=conversation.id, role="assistant", content=full_answer
+            )
+            db.add(assistant_message)
+            conversation.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(conversation)
+            db.refresh(user_message)
+            db.refresh(assistant_message)
+            
+            # 완료 이벤트
+            yield f"data: {json.dumps({'type': 'done', 'user_message_id': user_message.id, 'assistant_message_id': assistant_message.id, 'conversation_title': conversation.title})}\n\n"
+            
+        except Exception as e:
+            db.rollback()
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    except Exception as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Agent error: {exc}",
-        ) from exc
-
-    assistant_message = Message(
-        conversation_id=conversation.id, role="assistant", content=answer
-    )
-    db.add(assistant_message)
-    conversation.updated_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(conversation)
-    db.refresh(user_message)
-    db.refresh(assistant_message)
-
-    return ChatResponse(
-        conversation=ConversationOut.model_validate(conversation),
-        user_message=MessageOut.model_validate(user_message),
-        assistant_message=MessageOut.model_validate(assistant_message),
-    )

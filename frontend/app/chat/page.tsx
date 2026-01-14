@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 
 import { apiFetch } from "../../lib/api";
 import { clearAuth } from "../../lib/auth";
+import { API_BASE } from "../../lib/config";
 import type {
   ChatResponse,
   Conversation,
@@ -170,38 +171,112 @@ export default function ChatPage() {
     setInput("");
     setError(null);
 
-    const optimistic: Message = {
+    // 사용자 메시지 (optimistic)
+    const optimisticUser: Message = {
       id: Date.now(),
       role: "user",
       content,
       created_at: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, optimistic]);
+
+    // 어시스턴트 메시지 (스트리밍용)
+    const optimisticAssistant: Message = {
+      id: Date.now() + 1,
+      role: "assistant",
+      content: "",
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticUser, optimisticAssistant]);
     setLoading(true);
 
     try {
-      const response = await apiFetch<ChatResponse>(
-        `/conversations/${conversationId}/messages`,
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE}/conversations/${conversationId}/messages`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ content }),
         }
       );
-      setMessages((prev) => [
-        ...prev.filter((item) => item.id !== optimistic.id),
-        response.user_message,
-        response.assistant_message,
-      ]);
-      setConversations((prev) =>
-        sortConversations(
-          prev.map((item) =>
-            item.id === response.conversation.id ? response.conversation : item
-          )
+
+      if (!response.ok) {
+        throw new Error("요청에 실패했습니다.");
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === "token") {
+                assistantContent += data.content;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === optimisticAssistant.id
+                      ? { ...m, content: assistantContent }
+                      : m
+                  )
+                );
+              } else if (data.type === "done") {
+                // 실제 ID로 업데이트
+                setMessages((prev) =>
+                  prev.map((m) => {
+                    if (m.id === optimisticUser.id) {
+                      return { ...m, id: data.user_message_id };
+                    }
+                    if (m.id === optimisticAssistant.id) {
+                      return { ...m, id: data.assistant_message_id };
+                    }
+                    return m;
+                  })
+                );
+                // 대화 제목 업데이트
+                if (data.conversation_title) {
+                  setConversations((prev) =>
+                    sortConversations(
+                      prev.map((c) =>
+                        c.id === conversationId
+                          ? {
+                              ...c,
+                              title: data.conversation_title,
+                              updated_at: new Date().toISOString(),
+                            }
+                          : c
+                      )
+                    )
+                  );
+                }
+              } else if (data.type === "error") {
+                setError(data.message);
+              }
+            } catch (parseError) {
+              // JSON 파싱 오류 무시 (불완전한 청크)
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      setMessages((prev) =>
+        prev.filter(
+          (m) => m.id !== optimisticUser.id && m.id !== optimisticAssistant.id
         )
       );
-      setActiveId(response.conversation.id);
-    } catch (err: any) {
-      setMessages((prev) => prev.filter((item) => item.id !== optimistic.id));
       setError(err.message);
     } finally {
       setLoading(false);
