@@ -48,7 +48,7 @@ def router(state: AgentState) -> Literal["income_tax", "real_estate_tax", "llm"]
 
 def call_llm(state: AgentState) -> AgentState:
     llm_chain = small_llm | StrOutputParser()
-    llm_answer = llm_chain.invoke(state["query"])
+    llm_answer = llm_chain.invoke(state["query"], config={"tags": ["final_answer"]})
     return {"answer": llm_answer}
 
 

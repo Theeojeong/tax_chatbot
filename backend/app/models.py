@@ -1,7 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 from .db import Base
 
@@ -67,3 +69,17 @@ class Message(Base):
     conversation: Mapped[Conversation] = relationship(
         "Conversation", back_populates="messages"
     )
+
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    collection: Mapped[str] = mapped_column(String(50), index=True)
+    content: Mapped[str] = mapped_column(Text)
+
+    content_tsvector = mapped_column(TSVECTOR)  # 키워드 검색
+    embedding = mapped_column(Vector(3072))  # 벡터 검색
+
+    metadata_: Mapped[dict] = mapped_column(JSONB, default={})
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

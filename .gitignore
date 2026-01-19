@@ -97,3 +97,6 @@ documents/
 !backend/reference/
 !backend/reference/**
 !backend/reference/**/*.sqlite3
+
+migrations/
+nginx/

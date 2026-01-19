@@ -117,7 +117,7 @@ async def create_message(
                     name = event.get("name", "")
                     
                     metadata = event.get("metadata", {})
-                    if metadata.get("langgraph_node") == "__start__":
+                    if "final_answer" not in tags:
                         continue
                     
                     chunk = event["data"]["chunk"].content

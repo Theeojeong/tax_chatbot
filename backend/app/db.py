@@ -10,6 +10,6 @@ Base = declarative_base()
 
 
 def init_db() -> None:
-    from . import models  # noqa: F401
+    from . import models
 
     Base.metadata.create_all(bind=engine)

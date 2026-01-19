@@ -166,7 +166,8 @@ def calculate_tax_rate(state: AgentState):
     context = retriever.invoke(state["query"])
     tax_rate_chain = tax_rate_calculation_prompt | llm | StrOutputParser()
     tax_rate = tax_rate_chain.invoke(
-        {"context": context, "tax_base": state["tax_base"], "query": state["query"]}
+        {"context": context, "tax_base": state["tax_base"], "query": state["query"]},
+        config={"tags": ["final_answer"]},
     )
 
     return {"answer": tax_rate}

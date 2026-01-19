@@ -101,7 +101,8 @@ def generate(state: AgentState):
             "question": state["query"],
             "context": state["context"],
             "chat_history": state["chat_history"],
-        }
+        },
+        config={"tags": ["final_answer"]},
     )
     return {"answer": response.content}
 
@@ -163,7 +164,8 @@ def check_hallucination(
     context = [doc.page_content for doc in state["context"]]
     hallucination_chain = hallucination_prompt | small_llm | StrOutputParser()
     response = hallucination_chain.invoke(
-        {"student_answer": state["answer"], "documents": context}
+        {"student_answer": state["answer"], "documents": context},
+        config={"tags": ["hallucination_check"]},
     )
     return response
 

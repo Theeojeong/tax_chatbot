@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# LangSmith Configuration
 os.environ["LANGCHAIN_PROJECT"] = "tax-chatbot"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
@@ -17,8 +16,8 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 
-OPENAI_MODEL = "gpt-5.1"
-OPENAI_SMALL_MODEL = "gpt-5-nano"
+OPENAI_MODEL = "gpt-5-nano"
+OPENAI_SMALL_MODEL = "gpt-4.1-nano"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-large"
 
 INCOME_TAX_COLLECTION_DIR = BASE_DIR / "reference" / "income_tax"
