@@ -12,6 +12,7 @@ from typing_extensions import TypedDict
 from ..core.config import REAL_ESTATE_TAX_COLLECTION_DIR
 from .llm import get_embeddings, get_llm
 
+llm = get_llm()
 
 class AgentState(TypedDict):
     query: str
@@ -25,16 +26,18 @@ class AgentState(TypedDict):
 graph_builder = StateGraph(AgentState)
 
 embedding_function = get_embeddings()
+
 vector_store = Chroma(
     embedding_function=embedding_function,
     collection_name="real_estate",
     persist_directory=str(REAL_ESTATE_TAX_COLLECTION_DIR),
 )
+
 retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+
 
 rag_prompt = hub.pull("rlm/rag-prompt")
 
-llm = get_llm()
 
 tax_base_retrieval_chain = (
     {"context": retriever, "question": RunnablePassthrough()}
@@ -106,7 +109,7 @@ tax_market_ratio_prompt = ChatPromptTemplate.from_messages(
 
 
 def get_market_ratio(state: AgentState):
-    query = f"오늘 날짜:({date.today()})에 해당하는 주택 공시가격 공정시장가액비율은 몇%인가요?"
+    query = f"오늘 날짜:({date.today()})에 해당하는 주택 공시가격 공정시장가액비율은 몇 %인가요?"
     context = tavily_search_tool.invoke(query)
     tax_market_ratio_chain = tax_market_ratio_prompt | llm | StrOutputParser()
     market_ratio = tax_market_ratio_chain.invoke({"context": context, "query": query})

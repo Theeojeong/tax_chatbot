@@ -2,7 +2,7 @@ from typing import Literal
 from typing_extensions import TypedDict
 
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
@@ -19,16 +19,15 @@ class AgentState(TypedDict):
 
 
 class Route(BaseModel):
-    target: Literal["income_tax", "llm", "real_estate_tax"] = Field(
+    target: Literal["income_tax", "llm"] = Field(
         description="The target for the query to answer"
     )
 
 
 router_system_prompt = """
-You are an expert at routing a user's question to 'income_tax', 'llm', or 'real_estate_tax'.
+You are an expert at routing a user's question to 'income_tax', 'llm'.
 'income_tax' contains information about income tax up to December 2024.
-'real_estate_tax' contains information about real estate tax up to December 2024.
-if you think the question is not related to either 'income_tax' or 'real_estate_tax';
+if you think the question is not related to 'income_tax';
 you can route it to 'llm'.
 """
 
@@ -38,17 +37,35 @@ router_prompt = ChatPromptTemplate.from_messages(
 
 
 small_llm = get_llm()
+
 structured_router_llm = small_llm.with_structured_output(Route)
 
 
-def router(state: AgentState) -> Literal["income_tax", "real_estate_tax", "llm"]:
-    route = (router_prompt | structured_router_llm).invoke({"query": state["query"]})
+def router(state: AgentState) -> Literal["income_tax", "llm"]:
+    router_chain = router_prompt | structured_router_llm
+    route = router_chain.invoke({"query": state["query"]})
+
     return route.target
 
 
+call_llm_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "너는 도움이 되는 어시스턴트야."),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{query}"),
+    ]
+)
+
 def call_llm(state: AgentState) -> AgentState:
-    llm_chain = small_llm | StrOutputParser()
-    llm_answer = llm_chain.invoke(state["query"], config={"tags": ["final_answer"]})
+    llm_chain = call_llm_prompt | small_llm | StrOutputParser()
+    llm_answer = llm_chain.invoke(
+        {
+            "query": state["query"],
+            "chat_history": state["chat_history"],
+        },
+        config={"tags": ["final_answer"]},
+    )
+
     return {"answer": llm_answer}
 
 

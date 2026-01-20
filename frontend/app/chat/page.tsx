@@ -18,7 +18,7 @@ import type {
 function sortConversations(list: Conversation[]) {
   return [...list].sort(
     (a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
   );
 }
 
@@ -78,7 +78,7 @@ export default function ChatPage() {
     const loadMessages = async () => {
       try {
         const data = await apiFetch<Message[]>(
-          `/conversations/${activeId}/messages`
+          `/conversations/${activeId}/messages`,
         );
         setMessages(data);
       } catch (err: any) {
@@ -133,7 +133,7 @@ export default function ChatPage() {
 
   const activeConversation = useMemo(
     () => conversations.find((item) => item.id === activeId) ?? null,
-    [conversations, activeId]
+    [conversations, activeId],
   );
 
   const handleNewConversation = async () => {
@@ -201,7 +201,7 @@ export default function ChatPage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ content }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -230,8 +230,8 @@ export default function ChatPage() {
                   prev.map((m) =>
                     m.id === optimisticAssistant.id
                       ? { ...m, content: assistantContent }
-                      : m
-                  )
+                      : m,
+                  ),
                 );
               } else if (data.type === "done") {
                 // 실제 ID로 업데이트
@@ -244,7 +244,7 @@ export default function ChatPage() {
                       return { ...m, id: data.assistant_message_id };
                     }
                     return m;
-                  })
+                  }),
                 );
                 // 대화 제목 업데이트
                 if (data.conversation_title) {
@@ -257,9 +257,9 @@ export default function ChatPage() {
                               title: data.conversation_title,
                               updated_at: new Date().toISOString(),
                             }
-                          : c
-                      )
-                    )
+                          : c,
+                      ),
+                    ),
                   );
                 }
               } else if (data.type === "error") {
@@ -274,8 +274,8 @@ export default function ChatPage() {
     } catch (err: any) {
       setMessages((prev) =>
         prev.filter(
-          (m) => m.id !== optimisticUser.id && m.id !== optimisticAssistant.id
-        )
+          (m) => m.id !== optimisticUser.id && m.id !== optimisticAssistant.id,
+        ),
       );
       setError(err.message);
     } finally {
@@ -306,11 +306,11 @@ export default function ChatPage() {
         method: "DELETE",
       });
       setConversations((prev) =>
-        prev.filter((item) => item.id !== conversationId)
+        prev.filter((item) => item.id !== conversationId),
       );
       if (activeId === conversationId) {
         const remaining = conversations.filter(
-          (item) => item.id !== conversationId
+          (item) => item.id !== conversationId,
         );
         setActiveId(remaining.length > 0 ? remaining[0].id : null);
         setMessages([]);
@@ -330,9 +330,7 @@ export default function ChatPage() {
           <div className="sidebar-header">
             <div className="brand">
               <h2>세무톡</h2>
-              <span>
-                부동산세법과 소득세법에 특화된 AI가 세무 상담을 도와드립니다.
-              </span>
+              <span>소득세법에 특화된 AI가 세무 상담을 도와드립니다.</span>
             </div>
             <button
               className="close-sidebar-btn"
@@ -386,7 +384,7 @@ export default function ChatPage() {
                   <strong>{conversation.title}</strong>
                   <span>
                     {new Date(conversation.updated_at).toLocaleDateString(
-                      "ko-KR"
+                      "ko-KR",
                     )}
                   </span>
                 </div>
@@ -418,13 +416,13 @@ export default function ChatPage() {
                         } else {
                           // 양쪽 모두 부족하면 더 많은 공간이 있는 쪽으로
                           setMenuDirection(
-                            spaceBelow > spaceAbove ? "down" : "up"
+                            spaceBelow > spaceAbove ? "down" : "up",
                           );
                         }
                       }
 
                       setMenuOpenId((prev) =>
-                        prev === conversation.id ? null : conversation.id
+                        prev === conversation.id ? null : conversation.id,
                       );
                     }}
                     title="대화 메뉴"

@@ -104,9 +104,7 @@ export default function LoginPage() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <div>
           <h1>만나서 반가워요.</h1>
-          <p>
-            부동산세법과 소득세법을 학습한 챗봇에 로그인해 대화를 이어가세요.
-          </p>
+          <p>소득세법을 학습한 챗봇에 로그인해 대화를 이어가세요.</p>
         </div>
         <div>
           <label htmlFor="email">이메일</label>

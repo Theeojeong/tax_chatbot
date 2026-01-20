@@ -4,7 +4,8 @@ import httpx
 
 from ..core.config import GOOGLE_CLIENT_ID
 from ..core.security import create_access_token, get_password_hash, verify_password
-from ..deps import get_current_user, get_db
+from ..deps import get_current_user
+from ..db import get_db
 from ..models import User
 from ..schemas import GoogleLoginRequest, Token, UserCreate, UserLogin, UserOut
 
@@ -13,26 +14,22 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
 
+# 회원 가입
 @router.post("/signup", response_model=Token)
 def signup(
     payload: UserCreate,
     db: Session = Depends(get_db),
 ):
-    print("입력한 비밀번호", payload.password)
-    existing = db.query(User).filter(User.email == payload.email).first()
-    if existing:
+    existing_email = db.query(User).filter(User.email == payload.email).first()
+    if existing_email:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
+            status_code=status.HTTP_409_CONFLICT, detail="이미 가입한 이메일입니다."
         )
 
     user = User(
         email=payload.email,
-        hashed_password=get_password_hash(payload.password),
+        hashed_password=get_password_hash(payload.password), # 회원 가입
         display_name=payload.display_name,
-    )
-    print("해싱된 비밀번호", get_password_hash(payload.password))
-    print(
-        "해싱된 비밀번호 길이, String(255)임", len(get_password_hash(payload.password))
     )
     db.add(user)
     db.commit()

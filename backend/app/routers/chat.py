@@ -6,9 +6,10 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..agents.multi_agent_graph import graph as multi_agent_graph
-from ..deps import get_current_user, get_db
+from ..db import get_db
+from ..deps import get_current_user
 from ..models import Conversation, Message, User
-from ..schemas import ChatResponse, ConversationCreate, ConversationOut, MessageCreate, MessageOut
+from ..schemas import ConversationCreate, ConversationOut, MessageCreate, MessageOut
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 

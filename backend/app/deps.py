@@ -4,24 +4,17 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from .core.security import decode_access_token
-from .db import SessionLocal
+from .db import get_db
 from .models import User
 
 security = HTTPBearer()
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security), # 출입증(토큰)
     db: Session = Depends(get_db),
 ) -> User:
+
     token = credentials.credentials
     try:
         payload = decode_access_token(token)

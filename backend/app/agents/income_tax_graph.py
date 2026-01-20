@@ -5,17 +5,18 @@ from langchain_classic import hub
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langgraph.graph import END, START, StateGraph
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
-
 from ..core.config import INCOME_TAX_COLLECTION_DIR
 from .llm import get_embeddings, get_llm
+
+llm = get_llm()
+small_llm = get_llm(small=True)
 
 
 embedding_function = get_embeddings()
@@ -24,6 +25,7 @@ vector_store = Chroma(
     collection_name="income_tax",
     persist_directory=str(INCOME_TAX_COLLECTION_DIR),
 )
+
 retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
 
@@ -34,9 +36,6 @@ class AgentState(TypedDict):
     chat_history: list[dict]
     retry_count: int  # 재시도 횟수 추적
 
-
-llm = get_llm()
-small_llm = get_llm(small=True)
 
 graph_builder = StateGraph(AgentState)
 
@@ -81,16 +80,20 @@ def check_doc_relevance(state: AgentState) -> Literal["relevant", "irrelevant"]:
     return "relevant" if response["Score"] == 1 else "irrelevant"
 
 
-generate_prompt = PromptTemplate(
-    input_variables=["context", "question", "chat_history"],  # chat_history 추가
-    template="""You are an assistant for question-answering tasks. 
-        Use the following pieces of retrieved context to answer the question. 
-        If you don't know the answer, just say that you don't know. 
-        Use three sentences maximum and keep the answer concise.
-        chat_history: {chat_history} 
-        Question: {question}
-        Context: {context}
-        Answer:""",
+
+generate_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are an assistant for question-answering tasks. 
+Use the following pieces of retrieved context to answer the question. 
+If you don't know the answer, just say that you don't know. 
+Use three sentences maximum and keep the answer concise.
+Context: {context}""",
+        ),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{question}"),
+    ]
 )
 
 
@@ -110,12 +113,11 @@ def generate(state: AgentState):
 rewrite_prompt = PromptTemplate.from_template(
     """
 너는 대한민국 세법(소득세법) 문서를 검색하기 위한 
-"검색 질의 생성기" 역할을 한다.
+" RAG retrieve 검색 질의 생성기" 역할을 한다.
 
 목표:
-- 사용자의 질문을 그대로 답변하지 말고
 - 소득세법 문서에서 관련 조문을 가장 잘 찾을 수 있도록
-  검색에 최적화된 질의로 재작성하라.
+  RAG retrieve 검색에 최적화된 질의로 재작성하라.
 
 규칙:
 1. 가능한 경우 반드시 "제X조", "제X조의Y", "제X항", "제X호" 형태를 사용하라.
@@ -128,9 +130,6 @@ rewrite_prompt = PromptTemplate.from_template(
 
 사용자 질문:
 {query}
-
-사용자의 질문으로 rag retrieve된 문서:
-{dictionary}
 
 검색용 질의:"""
 )
