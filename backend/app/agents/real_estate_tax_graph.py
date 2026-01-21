@@ -1,30 +1,23 @@
-from datetime import date
+from typing import Literal
+from typing_extensions import List, TypedDict
 
 from langchain_classic import hub
 from langchain_chroma import Chroma
-from langchain_tavily import TavilySearch
+from langchain_classic.retrievers.multi_query import MultiQueryRetriever
+from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langgraph.graph import END, START, StateGraph
-from typing_extensions import TypedDict
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from ..core.config import REAL_ESTATE_TAX_COLLECTION_DIR
 from .llm import get_embeddings, get_llm
 
 llm = get_llm()
-
-class AgentState(TypedDict):
-    query: str
-    answer: str
-    tax_base_equation: str
-    tax_deduction: str
-    market_ratio: str
-    tax_base: str
-
-
-graph_builder = StateGraph(AgentState)
-
+small_llm = get_llm(small=True)
 embedding_function = get_embeddings()
 
 vector_store = Chroma(
@@ -33,162 +26,203 @@ vector_store = Chroma(
     persist_directory=str(REAL_ESTATE_TAX_COLLECTION_DIR),
 )
 
-retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+base_retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
-
-rag_prompt = hub.pull("rlm/rag-prompt")
-
-
-tax_base_retrieval_chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | rag_prompt
-    | llm
-    | StrOutputParser()
+QUERY_PROMPT = PromptTemplate(
+    input_variables=["question"],
+    template="""당신의 임무는 사용자의 질문에 대해 벡터 데이터베이스에서 관련 문서를 검색하기 위해 3개의 서로 다른 버전의 질문을 생성하는것입니다. 
+    다양한 관점에서 질문을 작성함으로써 거리 기반 유사도 검색의 한계를 극복하는 것이 목적입니다.
+    
+    사용자 질문: {question}
+    """,
 )
 
-tax_base_equation_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "사용자의 질문에서 과세표준을 계산하는 방법을 수식으로 나타내주세요. 부연설명 없이 수식만 리턴해주세요",
-        ),
-        ("human", "{tax_base_equation_information}"),
-    ]
+retriever = MultiQueryRetriever.from_llm(
+    retriever=base_retriever,
+    llm=llm,
+    prompt=QUERY_PROMPT,
 )
 
-
-tax_base_equation_chain = (
-    {"tax_base_equation_information": RunnablePassthrough()}
-    | tax_base_equation_prompt
-    | llm
-    | StrOutputParser()
-)
-
-tax_base_chain = {
-    "tax_base_equation_information": tax_base_retrieval_chain
-} | tax_base_equation_chain
+class AgentState(TypedDict):
+    query: str
+    context: List[Document]
+    answer: str
+    chat_history: list[dict]
+    retry_count: int  # 재시도 횟수 추적
 
 
-def get_tax_base_equation(state: AgentState):
-    tax_base_equation_question = "주택에 대한 종합부동산세 계산시 과세표준을 계산하는 방법을 수식으로 표현해서 알려주세요"
-    tax_base_equation = tax_base_chain.invoke(tax_base_equation_question)
-    return {"tax_base_equation": tax_base_equation}
+graph_builder = StateGraph(AgentState)
 
 
-tax_deduction_chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | rag_prompt
-    | llm
-    | StrOutputParser()
-)
+dictionary = ["사람과 관련된 표현 -> 거주자"]
 
 
-def get_tax_deduction(state: AgentState):
-    tax_deduction_question = "주택에 대한 종합부동산세 계산시 공제금액을 알려주세요"
-    tax_deduction = tax_deduction_chain.invoke(tax_deduction_question)
-    return {"tax_deduction": tax_deduction}
+def retrieve(state: AgentState):
+    docs = retriever.invoke(state["query"])
+    return {"context": docs}
 
 
-tavily_search_tool = TavilySearch(
-    max_results=5,
-    search_depth="advanced",
-    include_answer=True,
-    include_raw_content=True,
-    include_images=True,
-)
-
-tax_market_ratio_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "아래 정보를 기반으로 공정시장 가액비율을 계산해주세요\n\nContext:\n{context}",
-        ),
-        ("human", "{query}"),
-    ]
-)
+doc_relevance_prompt = hub.pull("langchain-ai/rag-document-relevance")
 
 
-def get_market_ratio(state: AgentState):
-    query = f"오늘 날짜:({date.today()})에 해당하는 주택 공시가격 공정시장가액비율은 몇 %인가요?"
-    context = tavily_search_tool.invoke(query)
-    tax_market_ratio_chain = tax_market_ratio_prompt | llm | StrOutputParser()
-    market_ratio = tax_market_ratio_chain.invoke({"context": context, "query": query})
-    return {"market_ratio": market_ratio}
-
-
-tax_base_calculation_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-주어진 내용을 기반으로 과세표준을 계산해주세요
-
-과세표준 계산 공식: {tax_base_equation}
-공제금액: {tax_deduction}
-공정시장가액비율: {market_ratio}""",
-        ),
-        ("human", "사용자 주택 공시가격 정보: {query}"),
-    ]
-)
-
-
-def calculate_tax_base(state: AgentState):
-    tax_base_calculation_chain = tax_base_calculation_prompt | llm | StrOutputParser()
-    tax_base = tax_base_calculation_chain.invoke(
-        {
-            "tax_base_equation": state["tax_base_equation"],
-            "tax_deduction": state["tax_deduction"],
-            "market_ratio": state["market_ratio"],
-            "query": state["query"],
-        }
+def check_doc_relevance(state: AgentState) -> Literal["relevant", "irrelevant"]:
+    doc_relevance_chain = doc_relevance_prompt | small_llm
+    response = doc_relevance_chain.invoke(
+        {"question": state["query"], "documents": state["context"]}
     )
+    return "relevant" if response["Score"] == 1 else "irrelevant"
 
-    return {"tax_base": tax_base}
 
-
-tax_rate_calculation_prompt = ChatPromptTemplate.from_messages(
+generate_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """당신은 종합부동산세 계산 전문가입니다. 아래 문서를 참고해서 사용자의 질문에 대한 종합부동산세를 계산해주세요
-
-종합부동산세 세율:{context}""",
+            """You are an assistant for question-answering tasks for Real Estate Tax Law (Property Tax, Comprehensive Real Estate Holding Tax, Acquisition Tax, Capital Gains Tax). 
+Use the following pieces of retrieved context to answer the question. 
+If you don't know the answer, just say that you don't know. 
+Use three sentences maximum and keep the answer concise.
+Context: {context}""",
         ),
-        (
-            "human",
-            """과세표준과 사용자가 소지한 주택의 수가 아래와 같을 때 종합부동산세를 계산해주세요
-
-과세표준: {tax_base}
-주택 수:{query}""",
-        ),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{question}"),
     ]
 )
 
 
-def calculate_tax_rate(state: AgentState):
-    context = retriever.invoke(state["query"])
-    tax_rate_chain = tax_rate_calculation_prompt | llm | StrOutputParser()
-    tax_rate = tax_rate_chain.invoke(
-        {"context": context, "tax_base": state["tax_base"], "query": state["query"]},
+def generate(state: AgentState):
+    rag_chain = generate_prompt | llm
+    response = rag_chain.invoke(
+        {
+            "question": state["query"],
+            "context": state["context"],
+            "chat_history": state["chat_history"],
+        },
         config={"tags": ["final_answer"]},
     )
+    return {"answer": response.content}
 
-    return {"answer": tax_rate}
+
+rewrite_prompt = PromptTemplate.from_template(
+    """
+너는 대한민국 부동산 세법(취득세, 재산세, 종부세, 양도소득세) 문서를 검색하기 위한 
+" RAG retrieve 검색 질의 생성기" 역할을 한다.
+
+목표:
+- 부동산 세법 문서에서 관련 조문을 가장 잘 찾을 수 있도록
+  RAG retrieve 검색에 최적화된 질의로 재작성하라.
+
+규칙:
+1. 가능한 경우 반드시 "제X조", "제X조의Y", "제X항", "제X호" 형태를 사용하라.
+2. 세법에서 사용되는 공식 용어를 우선 사용하라.
+   (예: 취득세, 과세표준, 공정시장가액비율, 조정대상지역, 1세대 1주택 등)
+3. 불필요한 조사, 존댓말, 질문 표현은 제거하라.
+4. 계산식, 표, 요건, 세율과 관련된 질문이면 해당 개념을 명시하라.
+5. 질문이 모호하면 가장 가능성이 높은 법령 키워드 중심으로 재작성하라.
+6. 절대 답변을 생성하지 말고, 검색용 질의만 출력하라.
+
+사용자 질문:
+{query}
+
+검색용 질의:"""
+)
+
+def rewrite(state: AgentState):
+    rewrite_chain = rewrite_prompt | llm | StrOutputParser()
+    response = rewrite_chain.invoke({"query": state["query"], "dictionary": dictionary})
+    retry_count = state.get("retry_count", 0) + 1
+    return {"query": response, "retry_count": retry_count}
 
 
-graph_builder.add_node("get_tax_base_equation", get_tax_base_equation)
-graph_builder.add_node("get_tax_deduction", get_tax_deduction)
-graph_builder.add_node("get_market_ratio", get_market_ratio)
-graph_builder.add_node("calculate_tax_base", calculate_tax_base)
-graph_builder.add_node("calculate_tax_rate", calculate_tax_rate)
+hallucination_prompt = PromptTemplate.from_template(
+    """
+You are a teacher tasked with evaluating whether a student's answer is based on documents or not,
+Given documents, which are excerpts from real estate tax law, and a student's answer;
+If the student's answer is based on documents, respond with "not hallucinated",
+If the student's answer is not based on documents, respond with "hallucinated".
 
-graph_builder.add_edge(START, "get_tax_base_equation")
-graph_builder.add_edge(START, "get_tax_deduction")
-graph_builder.add_edge(START, "get_market_ratio")
-graph_builder.add_edge("get_tax_base_equation", "calculate_tax_base")
-graph_builder.add_edge("get_tax_deduction", "calculate_tax_base")
-graph_builder.add_edge("get_market_ratio", "calculate_tax_base")
-graph_builder.add_edge("calculate_tax_base", "calculate_tax_rate")
-graph_builder.add_edge("calculate_tax_rate", END)
+documents: {documents}
+student_answer: {student_answer}
+"""
+)
+
+
+def check_hallucination(
+    state: AgentState,
+) -> Literal["hallucinated", "not hallucinated", "max_retries"]:
+    if state.get("retry_count", 0) > 2:
+        return "max_retries"
+
+    context = [doc.page_content for doc in state["context"]]
+    hallucination_chain = hallucination_prompt | small_llm | StrOutputParser()
+    response = hallucination_chain.invoke(
+        {"student_answer": state["answer"], "documents": context},
+        config={"tags": ["hallucination_check"]},
+    )
+    return response
+
+
+helpfulness_prompt = hub.pull("langchain-ai/rag-answer-helpfulness")
+
+
+def check_helpfulness_grader(state: AgentState) -> Literal["helpful", "unhelpful", "max_retries"]:
+    if state.get("retry_count", 0) > 2:
+        return "max_retries"
+        
+    helpfulness_chain = helpfulness_prompt | llm
+    response = helpfulness_chain.invoke(
+        {"question": state["query"], "student_answer": state["answer"]}
+    )
+    return "helpful" if response["Score"] == 1 else "unhelpful"
+
+
+def check_helpfulness(state: AgentState):
+    return state
+
+
+def fallback_answer(state: AgentState):
+    """문서가 관련 없을 때 기본 답변 반환"""
+    return {
+        "answer": "죄송합니다. 해당 질문에 대한 정보를 찾지 못했습니다. 다른 방식으로 질문해 주시거나, 세무 전문가에게 문의해 주세요."
+    }
+
+
+graph_builder.add_node("retrieve", retrieve)
+graph_builder.add_node("generate", generate)
+graph_builder.add_node("rewrite", rewrite)
+graph_builder.add_node("check_helpfulness", check_helpfulness)
+graph_builder.add_node("fallback_answer", fallback_answer)
+
+
+graph_builder.add_edge(START, "retrieve")
+graph_builder.add_conditional_edges(
+    "retrieve",
+    check_doc_relevance,
+    {"relevant": "generate", "irrelevant": "fallback_answer"},
+)
+graph_builder.add_edge("fallback_answer", END)
+graph_builder.add_conditional_edges(
+    "generate",
+    check_hallucination,
+    {
+        "not hallucinated": "check_helpfulness",
+        "hallucinated": "rewrite",
+        "max_retries": "fallback_answer",
+    },
+)
+graph_builder.add_conditional_edges(
+    "check_helpfulness",
+    check_helpfulness_grader,
+    {
+        "helpful": END,
+        "unhelpful": "rewrite",
+        "max_retries": "fallback_answer",
+    },
+)
+graph_builder.add_edge("rewrite", "retrieve")
+
 
 graph = graph_builder.compile()
+
+if __name__ == "__main__":
+    with open("graph.png", "wb") as f:
+        f.write(graph.get_graph().draw_mermaid_png())

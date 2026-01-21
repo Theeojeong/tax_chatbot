@@ -3,6 +3,7 @@ from typing_extensions import List, TypedDict
 
 from langchain_classic import hub
 from langchain_chroma import Chroma
+from langchain_classic.retrievers.multi_query import MultiQueryRetriever
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
@@ -17,17 +18,30 @@ from .llm import get_embeddings, get_llm
 
 llm = get_llm()
 small_llm = get_llm(small=True)
-
-
 embedding_function = get_embeddings()
+
 vector_store = Chroma(
     embedding_function=embedding_function,
     collection_name="income_tax",
     persist_directory=str(INCOME_TAX_COLLECTION_DIR),
 )
 
-retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+base_retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
+QUERY_PROMPT = PromptTemplate(
+    input_variables=["question"],
+    template="""당신의 임무는 사용자의 질문에 대해 벡터 데이터베이스에서 관련 문서를 검색하기 위해 3개의 서로 다른 버전의 질문을 생성하는것입니다. 
+    다양한 관점에서 질문을 작성함으로써 거리 기반 유사도 검색의 한계를 극복하는 것이 목적입니다.
+    
+    사용자 질문: {question}
+    """,
+)
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=base_retriever,
+    llm=llm,
+    prompt=QUERY_PROMPT,
+)
 
 class AgentState(TypedDict):
     query: str
@@ -42,26 +56,6 @@ graph_builder = StateGraph(AgentState)
 
 dictionary = ["사람과 관련된 표현 -> 거주자"]
 
-rewrite_before_retrieve_prompt = PromptTemplate.from_template(
-    """
-You are an intelligent search query optimizer. 
-Your job is to rewrite the user's question to be more effective for keyword-based or semantic search in a tax law database.
-
-Follow these rules:
-1. **Resolve Ambiguity**: Replace pronouns (e.g., "it", "that", "he") with specific names or entities from the context if possible. (Note: Only current query is provided here, but interpret clearly).
-2. **Use Professional Terminology**: Use the provided dictionary to map common words to legal/tax terms.
-3. **Be Specific**: Add necessary context to make the query standalone.
-4. **Keep Meaning**: Do not change the original intent of the user.
-5. **Output ONLY the rewritten query**: Do not add any explanations or prefixes.
-
-Original Question: {query}
-Rewritten Question:"""
-)
-
-def rewrite_before_retrieve(state: AgentState):
-    rewrite_chain = rewrite_before_retrieve_prompt | llm | StrOutputParser()
-    response = rewrite_chain.invoke({"query": state["query"]})
-    return {"query": response}
 
 
 def retrieve(state: AgentState):
@@ -78,7 +72,6 @@ def check_doc_relevance(state: AgentState) -> Literal["relevant", "irrelevant"]:
         {"question": state["query"], "documents": state["context"]}
     )
     return "relevant" if response["Score"] == 1 else "irrelevant"
-
 
 
 generate_prompt = ChatPromptTemplate.from_messages(
