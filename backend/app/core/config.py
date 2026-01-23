@@ -19,6 +19,9 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 OPENAI_MODEL = "gpt-5-nano"
 OPENAI_SMALL_MODEL = "gpt-5-nano"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-large"
+UPSTAGE_EMBEDDING_MODEL = "solar-embedding-1-large"
 
 INCOME_TAX_COLLECTION_DIR = BASE_DIR / "reference" / "income_tax"
 REAL_ESTATE_TAX_COLLECTION_DIR = BASE_DIR / "reference" / "real_estate_tax"
+
+CONNECTION_STRING = os.getenv("CONNECTION_STRING")

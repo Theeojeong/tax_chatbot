@@ -4,11 +4,13 @@ from langchain_openai import (
     ChatOpenAI,
     OpenAIEmbeddings,
 )
+from langchain_upstage import UpstageEmbeddings
 
 from ..core.config import (
     OPENAI_EMBEDDING_MODEL,
     OPENAI_MODEL,
     OPENAI_SMALL_MODEL,
+    UPSTAGE_EMBEDDING_MODEL,
 )
 
 
@@ -19,4 +21,4 @@ def get_llm(small: bool = True):
 
 
 def get_embeddings():
-    return OpenAIEmbeddings(model=OPENAI_EMBEDDING_MODEL)
+    return UpstageEmbeddings(model=UPSTAGE_EMBEDDING_MODEL)
