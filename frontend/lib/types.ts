@@ -23,6 +23,7 @@ export type Message = {
   role: "user" | "assistant" | "system" | string;
   content: string;
   created_at: string;
+  isStreaming?: boolean;
 };
 
 export type ChatResponse = {

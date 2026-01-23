@@ -37,11 +37,13 @@ QUERY_PROMPT = PromptTemplate(
     """,
 )
 
-retriever = MultiQueryRetriever.from_llm(
+retriever_multi = MultiQueryRetriever.from_llm(
     retriever=base_retriever,
     llm=llm,
     prompt=QUERY_PROMPT,
 )
+
+retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
 class AgentState(TypedDict):
     query: str
@@ -55,7 +57,6 @@ graph_builder = StateGraph(AgentState)
 
 
 dictionary = ["사람과 관련된 표현 -> 거주자"]
-
 
 
 def retrieve(state: AgentState):

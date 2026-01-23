@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Fraunces, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
+import { ThemeProvider } from "../components/ThemeProvider";
+
 const grotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -21,7 +23,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" className={`${grotesk.variable} ${fraunces.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

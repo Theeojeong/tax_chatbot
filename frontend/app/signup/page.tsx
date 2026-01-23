@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { Eye, EyeOff, UserPlus, Shield, Sparkles, Clock } from "lucide-react";
 
 import { apiFetch } from "../../lib/api";
 import { setAuth } from "../../lib/auth";
 import { GOOGLE_CLIENT_ID } from "../../lib/config";
 import type { TokenResponse } from "../../lib/types";
+
+import { Header } from "../../components/auth/Header";
+import { Input } from "../../components/auth/Input";
+import { BackgroundDecor } from "../../components/auth/BackgroundDecor";
 
 declare global {
   interface Window {
@@ -63,16 +68,17 @@ export default function SignupPage() {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleCallback,
+          auto_select: false,
         });
         const buttonDiv = document.getElementById("google-signup-button");
         if (buttonDiv) {
-          const width = buttonDiv.clientWidth;
           window.google.accounts.id.renderButton(buttonDiv, {
             theme: "outline",
             size: "large",
-            width: width ? width + "" : "100%", // exact width
+            width: "350",
             text: "signup_with",
             locale: "ko",
+            logo_alignment: "left",
           });
         }
       }
@@ -96,6 +102,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      // AI Studio logic was just placeholder, so we keep using our existing logic
       const payload = await apiFetch<TokenResponse>("/auth/signup", {
         method: "POST",
         body: JSON.stringify({
@@ -114,312 +121,142 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="page-shell">
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <div>
-          <h1>새로운 세금 파트너.</h1>
-          <p>RouteLLM 기반 멀티 에이전트와 대화를 시작하세요.</p>
-        </div>
-        <div>
-          <label htmlFor="displayName">이름</label>
-          <input
-            id="displayName"
-            name="displayName"
-            type="text"
-            placeholder="홍길동"
-            value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="email">이메일</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="password">비밀번호</label>
-          <div style={{ position: "relative" }}>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="8자 이상"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={8}
-              style={{ paddingRight: "40px" }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                padding: "0",
-                cursor: "pointer",
-                color: "var(--muted)",
-                display: "flex",
-              }}
-            >
-              {showPassword ? (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              marginTop: "8px",
-              fontSize: "0.85rem",
-              color:
-                password.length === 0
-                  ? "var(--muted)" // Gray when empty
-                  : password.length >= 8 && password.length <= 32
-                  ? "#2E7D32" // Green when valid
-                  : "#D32F2F", // Red when invalid
-              transition: "color 0.2s ease",
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {password.length === 0 ||
-              (password.length >= 8 && password.length <= 32) ? (
-                <polyline points="20 6 9 17 4 12" />
-              ) : (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </>
-              )}
-            </svg>
-            <span>8자 이상 32자 이하 입력 (공백 제외)</span>
-          </div>
-        </div>
-        <div>
-          <label htmlFor="passwordConfirm">비밀번호 확인</label>
-          <div style={{ position: "relative" }}>
-            <input
-              id="passwordConfirm"
-              name="passwordConfirm"
-              type={showPasswordConfirm ? "text" : "password"}
-              placeholder="비밀번호를 다시 입력하세요"
-              value={passwordConfirm}
-              onChange={(event) => setPasswordConfirm(event.target.value)}
-              required
-              minLength={8}
-              style={{ paddingRight: "40px" }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              style={{
-                position: "absolute",
-                right: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                padding: "0",
-                cursor: "pointer",
-                color: "var(--muted)",
-                display: "flex",
-              }}
-            >
-              {showPasswordConfirm ? (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              marginTop: "8px",
-              fontSize: "0.85rem",
-              color:
-                passwordConfirm.length === 0
-                  ? "var(--muted)" // Gray when empty
-                  : password === passwordConfirm
-                  ? "#2E7D32" // Green when valid
-                  : "#D32F2F", // Red when invalid
-              transition: "color 0.2s ease",
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {passwordConfirm.length === 0 || password === passwordConfirm ? (
-                <polyline points="20 6 9 17 4 12" />
-              ) : (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </>
-              )}
-            </svg>
-            <span>
-              {passwordConfirm.length === 0
-                ? "비밀번호를 다시 입력해주세요"
-                : password === passwordConfirm
-                ? "비밀번호가 일치합니다"
-                : "비밀번호가 일치하지 않습니다"}
-            </span>
-          </div>
-        </div>
-        {error ? <p className="error-text">{error}</p> : null}
-        <button type="submit" disabled={loading}>
-          {loading ? "가입 중..." : "회원가입"}
-        </button>
+    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-sans text-slate-900 dark:text-white relative overflow-hidden">
+      <Header />
 
-        {GOOGLE_CLIENT_ID && (
-          <>
-            <div className="auth-divider">
-              <span>또는</span>
+      <main className="flex-1 flex items-center justify-center p-4 md:p-8 pt-24 md:pt-28 relative z-0">
+        <div className="w-full max-w-[480px] flex flex-col items-center z-10">
+          {/* Hero */}
+          <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex justify-center mb-6">
+              <div className="size-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20 shadow-glow">
+                <UserPlus size={40} strokeWidth={1.5} />
+              </div>
             </div>
-            <div
-              id="google-signup-button"
-              className="google-button-wrapper"
-            ></div>
-          </>
-        )}
+            <h1 className="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight text-center pb-2">
+              Create your account
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-center text-base">
+              Start your journey with our Tax AI assistant today
+            </p>
+          </div>
 
-        <Link className="secondary" href="/login">
-          이미 계정이 있나요? 로그인
-        </Link>
-      </form>
+          <div className="w-full bg-white dark:bg-[#1c2127] p-6 md:p-8 rounded-xl border border-gray-200 dark:border-[#3b4754] shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+            <form onSubmit={handleSubmit}>
+              <Input
+                label="Full name"
+                type="text"
+                placeholder="John Doe"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+              />
 
-      {/* Loading Overlay */}
-      {loading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              border: "4px solid #f3f3f3",
-              borderTop: "4px solid var(--accent)",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              marginBottom: "16px",
-            }}
-          />
-          <span
-            style={{
-              color: "var(--foreground)",
-              fontSize: "1rem",
-              fontWeight: 500,
-            }}
-          >
-            가입 처리 중...
-          </span>
-          <style jsx>{`
-            @keyframes spin {
-              0% {
-                transform: rotate(0deg);
-              }
-              100% {
-                transform: rotate(360deg);
-              }
-            }
-          `}</style>
+              <Input
+                label="Email address"
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="8 characters minimum"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                endIcon={
+                  showPassword ? <EyeOff size={20} /> : <Eye size={20} />
+                }
+                onEndIconClick={() => setShowPassword(!showPassword)}
+              />
+
+              <Input
+                label="Confirm Password"
+                type={showPasswordConfirm ? "text" : "password"}
+                placeholder="Repeat password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                required
+                minLength={8}
+                helperText={
+                  passwordConfirm && password !== passwordConfirm
+                    ? "Passwords do not match"
+                    : passwordConfirm && password === passwordConfirm
+                      ? "Passwords match"
+                      : ""
+                }
+                // Add subtle color hints via helperText or separate UI if desired
+                endIcon={
+                  showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />
+                }
+                onEndIconClick={() =>
+                  setShowPasswordConfirm(!showPasswordConfirm)
+                }
+              />
+
+              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-primary/25 active:scale-[0.98] hover:shadow-primary/40 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Creating account..." : "Sign up"}
+              </button>
+            </form>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-[#3b4754]"></div>
+              </div>
+              <div className="relative flex justify-center text-sm uppercase">
+                <span className="bg-white dark:bg-[#1c2127] px-2 text-slate-500 dark:text-[#9dabb9] font-medium text-xs tracking-wider">
+                  Or sign up with
+                </span>
+              </div>
+            </div>
+
+            {GOOGLE_CLIENT_ID && (
+              <div
+                id="google-signup-button"
+                className="w-full flex justify-center min-h-[44px]"
+              ></div>
+            )}
+          </div>
+
+          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            Already have an account?
+            <Link
+              href="/login"
+              className="text-primary font-bold hover:underline ml-1 hover:text-primary/80 transition-colors"
+            >
+              Log in
+            </Link>
+          </p>
+
+          <div className="mt-12 flex flex-wrap justify-center gap-6 text-slate-400 dark:text-slate-600">
+            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
+              <Shield size={16} />
+              <span className="text-xs font-medium">Secure encryption</span>
+            </div>
+            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
+              <Sparkles size={16} />
+              <span className="text-xs font-medium">Smart AI Models</span>
+            </div>
+            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
+              <Clock size={16} />
+              <span className="text-xs font-medium">24/7 Availability</span>
+            </div>
+          </div>
         </div>
-      )}
+      </main>
+
+      <BackgroundDecor />
     </div>
   );
 }
