@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ..agents.multi_agent_graph import graph as multi_agent_graph
+from langchain_core.messages import HumanMessage, AIMessage
+from ..agents.supervisor import graph as supervisor_agent
 from ..db import get_db
 from ..deps import get_current_user
 from ..models import Conversation, Message, User
@@ -100,32 +101,40 @@ async def create_message(
 
     all_messages = conversation.messages
     chat_history = []
-    
+
     for msg in all_messages:
         if msg.id != user_message.id:
             chat_history.append({"role": msg.role, "content": msg.content})
 
+    def to_lc_messages(chat_history, user_text: str):
+        messages = []
+        for m in chat_history:
+            if m["role"] == "user":
+                messages.append(HumanMessage(content=m["content"]))
+            elif m["role"] == "assistant":
+                messages.append(AIMessage(content=m["content"]))
+            else:
+                # 필요 시 system/tool 등도 매핑
+                pass
+
+        messages.append(HumanMessage(content=user_text))
+        return messages
+
     async def event_generator():
+        lc_messages = to_lc_messages(chat_history, payload.content)
         full_answer = ""
         try:
-            async for event in multi_agent_graph.astream_events(
-                {"query": payload.content, "chat_history": chat_history},
-                version="v2"
+            async for event in supervisor_agent.astream_events(
+                {"messages": lc_messages},
+                version="v2",
             ):
                 if event["event"] == "on_chat_model_stream":
                     # router의 structured output 제외 (generate, llm 노드의 출력만 포함)
-                    tags = event.get("tags", [])
-                    name = event.get("name", "")
-                    
-                    metadata = event.get("metadata", {})
-                    if "final_answer" not in tags:
-                        continue
-                    
-                    chunk = event["data"]["chunk"].content
+                    chunk = event.get("data").get("chunk").content
                     if chunk:
                         full_answer += chunk
                         yield f"data: {json.dumps({'type': 'token', 'content': chunk})}\n\n"
-            
+
             assistant_message = Message(
                 conversation_id=conversation.id, role="assistant", content=full_answer
             )
@@ -135,13 +144,12 @@ async def create_message(
             db.refresh(conversation)
             db.refresh(user_message)
             db.refresh(assistant_message)
-            
+
             # 완료 이벤트
             yield f"data: {json.dumps({'type': 'done', 'user_message_id': user_message.id, 'assistant_message_id': assistant_message.id, 'conversation_title': conversation.title})}\n\n"
-            
+
         except Exception as e:
             db.rollback()
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-    
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
