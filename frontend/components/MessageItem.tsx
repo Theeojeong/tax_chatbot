@@ -2,6 +2,8 @@ import React from "react";
 import { User, Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
 import { Message } from "../lib/types";
 import { CodeBlock } from "./CodeBlock";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // OpenAI Logo style SVG for the "Model" avatar
 const OpenAILogo = () => (
@@ -27,88 +29,45 @@ interface MessageItemProps {
 export const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
   const isUser = message.role === "user";
 
-  // Parser to split content by code blocks, and handle images within text segments
-  const parseContent = (text: string) => {
-    // 1. Split by Code Blocks first: ```lang ... ```
-    const codeParts = text.split(/(```[\s\S]*?```)/g);
-
-    return codeParts.map((part, index) => {
-      // If it's a code block
-      if (part.startsWith("```") && part.endsWith("```")) {
-        const match = part.match(/```(\w+)?\n([\s\S]*?)```/);
-        if (match) {
-          const language = match[1] || "";
-          const code = match[2];
-          return (
-            <CodeBlock key={`code-${index}`} language={language} code={code} />
-          );
-        }
-        return null;
-      }
-
-      // If it's a regular text part, we process it for Images (Markdown or HTML)
-      // Regex detects: ![alt](url) OR <img src="url" ... />
-      const imageRegex = /(!\[.*?\]\(.*?\)|<img[^>]+src="([^">]+)"[^>]*>)/g;
-      const contentParts = part.split(imageRegex);
-
-      return (
-        <div key={`text-${index}`} className="whitespace-pre-wrap mb-2">
-          {contentParts.map((subPart, i) => {
-            if (!subPart) return null;
-
-            // Check for Markdown Image: ![alt](url)
-            const markdownMatch = subPart.match(/!\[(.*?)\]\((.*?)\)/);
-            if (markdownMatch) {
-              return (
-                <img
-                  key={`img-${index}-${i}`}
-                  src={markdownMatch[2]}
-                  alt={markdownMatch[1] || "Embedded Content"}
-                  className="max-w-full rounded-lg my-2 border border-white/10"
-                  loading="lazy"
-                />
-              );
-            }
-
-            // Check for HTML Image: <img src="...">
-            const htmlMatch = subPart.match(/<img[^>]+src="([^">]+)"[^>]*>/);
-            if (htmlMatch) {
-              return (
-                <img
-                  key={`img-html-${index}-${i}`}
-                  src={htmlMatch[1]}
-                  alt="Embedded Content"
-                  className="max-w-full rounded-lg my-2 border border-white/10"
-                  loading="lazy"
-                />
-              );
-            }
-
-            // Pure text - render lines
-            // Avoid rendering parts that were captured groups from the split regex but aren't the full match
-            if (
-              subPart.startsWith("http") &&
-              (part.includes(`(${subPart})`) ||
-                part.includes(`src="${subPart}"`))
-            ) {
-              return null;
-            }
-
+  const renderMarkdown = (text: string) => (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        p: ({ children }) => (
+          <p className="whitespace-pre-wrap mb-2">{children}</p>
+        ),
+        code: ({ className, children, ...props }) => {
+          const match = /language-(\w+)/.exec(className || "");
+          if (match) {
             return (
-              <span key={`span-${index}-${i}`}>
-                {subPart.split("\n").map((line, lineIdx) => (
-                  <React.Fragment key={lineIdx}>
-                    {line}
-                    {lineIdx < subPart.split("\n").length - 1 && <br />}
-                  </React.Fragment>
-                ))}
-              </span>
+              <CodeBlock
+                language={match[1]}
+                code={String(children).replace(/\n$/, "")}
+              />
             );
-          })}
-        </div>
-      );
-    });
-  };
+          }
+          return (
+            <code
+              className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10"
+              {...props}
+            >
+              {children}
+            </code>
+          );
+        },
+        img: ({ src, alt }) => (
+          <img
+            src={src || ""}
+            alt={alt || "Embedded Content"}
+            className="max-w-full rounded-lg my-2 border border-white/10"
+            loading="lazy"
+          />
+        ),
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
 
   return (
     <div
@@ -152,7 +111,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
           }`}
         >
           <div className="text-[15px] leading-relaxed">
-            {parseContent(message.content)}
+            {renderMarkdown(message.content)}
           </div>
 
           {/* Model Actions */}

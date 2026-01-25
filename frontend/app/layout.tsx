@@ -16,8 +16,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "부동산세금톡",
-  description: "소득세법을 학습한 챗봇이 상담을 도와드립니다.",
+  title: "세무톡",
+  description: "소득세법과 부동산세법을 학습한 챗봇이 상담을 도와드립니다.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

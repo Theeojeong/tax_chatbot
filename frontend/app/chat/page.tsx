@@ -339,38 +339,9 @@ export default function ChatPage() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full relative min-w-0">
-        {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-background-dark/95 backdrop-blur z-10 border-b border-gray-200 dark:border-white/5 sticky top-0">
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
-            >
-              <Menu size={24} />
-            </button>
-          </div>
-
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-lg font-semibold text-slate-900 dark:text-gray-100 mx-auto md:mx-0 transition-colors">
-            <span>세무톡</span>
-            <ChevronDown
-              size={18}
-              className="text-slate-400 dark:text-gray-400"
-            />
-          </button>
-
-          <div className="flex items-center gap-2 md:hidden">
-            <button
-              onClick={handleNewConversation}
-              className="text-white bg-primary p-2 rounded-lg"
-            >
-              <CirclePlus size={20} />
-            </button>
-          </div>
-        </header>
-
         {/* Chat Scroll Area */}
         <div className="flex-1 overflow-y-auto w-full scroll-smooth">
-          <div className="flex flex-col pb-40 pt-4">
+          <div className="flex flex-col pb-40 pt-2">
             {messages.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center h-[50vh] opacity-50">
                 <div className="size-16 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center mb-4">
@@ -433,8 +404,7 @@ export default function ChatPage() {
 
             <div className="text-center mt-2">
               <p className="text-[11px] text-slate-400 dark:text-gray-500">
-                Tax Chatbot can make mistakes. Consider checking important
-                information.
+                세무톡은 실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.
               </p>
             </div>
           </div>

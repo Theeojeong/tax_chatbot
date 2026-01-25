@@ -17,18 +17,30 @@ export default function Icon() {
       // ImageResponse JSX element
       <div
         style={{
-          fontSize: 24,
-          background: "#2f9a8a",
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "white",
+          textAlign: "center",
+          background: "#0b1220",
           borderRadius: "8px",
+          color: "white",
+          fontSize: 14,
+          fontWeight: 1000,
+          letterSpacing: 0.6,
+          lineHeight: 1,
         }}
       >
-        세
+        <span
+          style={{
+            display: "block",
+            transform: "translate(0.5px, 0.5px)",
+            textShadow: "0 0 1px rgba(255, 255, 255, 0.5)",
+          }}
+        >
+          TAX
+        </span>
       </div>
     ),
     // ImageResponse options
