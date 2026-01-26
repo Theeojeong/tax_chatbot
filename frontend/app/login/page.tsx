@@ -118,46 +118,27 @@ export default function LoginPage() {
       <Header />
 
       <main className="flex-1 flex items-center justify-center p-4 md:p-8 z-10">
-        <div className="w-full max-w-[480px] flex flex-col items-center">
-          {/* Header Section */}
-          <div className="w-full mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6 ring-1 ring-primary/20 shadow-glow">
-              {/* Use Lucide User icon or similar */}
-              <svg
-                className="w-10 h-10"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
-              Welcome back
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400">
-              Sign in to your account to continue chatting
+        <div className="w-full max-w-[440px] flex flex-col items-center">
+          <div className="w-full mb-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-2xl font-semibold tracking-tight">로그인</h1>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              세무톡 계정으로 로그인하세요.
             </p>
           </div>
 
-          <div className="w-full bg-white dark:bg-[#1c2127] p-8 rounded-xl border border-[#e5e7eb] dark:border-[#3b4754] shadow-xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+          <div className="w-full bg-white dark:bg-[#1c2127] p-6 md:p-7 rounded-xl border border-[#e5e7eb] dark:border-[#2b3440] shadow-sm animate-in fade-in zoom-in-95 duration-500">
             <form onSubmit={handleSubmit}>
               <Input
-                label="Email address"
+                label="이메일 주소"
                 type="email"
-                placeholder="name@company.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
               <Input
-                label="Password"
+                label="비밀번호"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
@@ -174,19 +155,19 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Logging in..." : "Log in"}
+                {loading ? "로그인 중..." : "로그인"}
               </button>
             </form>
 
-            <div className="relative my-8">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#e5e7eb] dark:border-[#3b4754]"></div>
+                <div className="w-full border-t border-[#e5e7eb] dark:border-[#2b3440]"></div>
               </div>
-              <div className="relative flex justify-center text-sm uppercase">
+              <div className="relative flex justify-center text-xs">
                 <span className="bg-white dark:bg-[#1c2127] px-2 text-slate-500 dark:text-[#9dabb9]">
-                  Or continue with
+                  또는
                 </span>
               </div>
             </div>
@@ -200,13 +181,13 @@ export default function LoginPage() {
             )}
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            Don&apos;t have an account?
+          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            계정이 없으신가요?
             <Link
               href="/signup"
-              className="text-primary font-bold hover:underline ml-1"
+              className="text-primary font-semibold hover:underline ml-1"
             >
-              Sign up for free
+              가입하기
             </Link>
           </p>
         </div>

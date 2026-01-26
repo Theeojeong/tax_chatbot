@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { Eye, EyeOff, UserPlus, Shield, Sparkles, Clock } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { apiFetch } from "../../lib/api";
 import { setAuth } from "../../lib/auth";
@@ -124,47 +124,41 @@ export default function SignupPage() {
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-sans text-slate-900 dark:text-white relative overflow-hidden">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center p-4 md:p-8 pt-24 md:pt-28 relative z-0">
-        <div className="w-full max-w-[480px] flex flex-col items-center z-10">
-          {/* Hero */}
-          <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex justify-center mb-6">
-              <div className="size-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20 shadow-glow">
-                <UserPlus size={40} strokeWidth={1.5} />
-              </div>
-            </div>
-            <h1 className="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight text-center pb-2">
-              Create your account
+      <main className="flex-1 flex items-center justify-center p-4 md:p-8 pt-20 md:pt-24 relative z-0">
+        <div className="w-full max-w-[440px] flex flex-col items-center z-10">
+          <div className="w-full mb-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-slate-900 dark:text-white tracking-tight text-2xl font-semibold leading-tight">
+              가입하기
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-center text-base">
-              Start your journey with our Tax AI assistant today
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              간단한 정보로 계정을 만들어보세요.
             </p>
           </div>
 
-          <div className="w-full bg-white dark:bg-[#1c2127] p-6 md:p-8 rounded-xl border border-gray-200 dark:border-[#3b4754] shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-150">
+          <div className="w-full bg-white dark:bg-[#1c2127] p-6 md:p-7 rounded-xl border border-gray-200 dark:border-[#2b3440] shadow-sm animate-in fade-in zoom-in-95 duration-500">
             <form onSubmit={handleSubmit}>
               <Input
-                label="Full name"
+                label="이름"
                 type="text"
-                placeholder="John Doe"
+                placeholder="홍길동"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
               />
 
               <Input
-                label="Email address"
+                label="이메일 주소"
                 type="email"
-                placeholder="name@company.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
               <Input
-                label="Password"
+                label="비밀번호"
                 type={showPassword ? "text" : "password"}
-                placeholder="8 characters minimum"
+                placeholder="최소 8 글자"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -176,9 +170,9 @@ export default function SignupPage() {
               />
 
               <Input
-                label="Confirm Password"
+                label="비밀번호 확인"
                 type={showPasswordConfirm ? "text" : "password"}
-                placeholder="Repeat password"
+                placeholder="비밀번호 재입력"
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 required
@@ -204,19 +198,19 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-primary/25 active:scale-[0.98] hover:shadow-primary/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Creating account..." : "Sign up"}
+                {loading ? "가입 중..." : "가입하기"}
               </button>
             </form>
 
-            <div className="relative my-8">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-[#3b4754]"></div>
+                <div className="w-full border-t border-gray-200 dark:border-[#2b3440]"></div>
               </div>
-              <div className="relative flex justify-center text-sm uppercase">
-                <span className="bg-white dark:bg-[#1c2127] px-2 text-slate-500 dark:text-[#9dabb9] font-medium text-xs tracking-wider">
-                  Or sign up with
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-[#1c2127] px-2 text-slate-500 dark:text-[#9dabb9]">
+                  또는
                 </span>
               </div>
             </div>
@@ -229,30 +223,15 @@ export default function SignupPage() {
             )}
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            Already have an account?
+          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            이미 계정이 있으신가요?
             <Link
               href="/login"
-              className="text-primary font-bold hover:underline ml-1 hover:text-primary/80 transition-colors"
+              className="text-primary font-semibold hover:underline ml-1 hover:text-primary/80 transition-colors"
             >
-              Log in
+              로그인
             </Link>
           </p>
-
-          <div className="mt-12 flex flex-wrap justify-center gap-6 text-slate-400 dark:text-slate-600">
-            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
-              <Shield size={16} />
-              <span className="text-xs font-medium">Secure encryption</span>
-            </div>
-            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
-              <Sparkles size={16} />
-              <span className="text-xs font-medium">Smart AI Models</span>
-            </div>
-            <div className="flex items-center gap-1.5 transition-colors hover:text-slate-500 dark:hover:text-slate-400 cursor-default">
-              <Clock size={16} />
-              <span className="text-xs font-medium">24/7 Availability</span>
-            </div>
-          </div>
         </div>
       </main>
 

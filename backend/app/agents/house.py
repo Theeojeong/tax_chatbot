@@ -7,6 +7,10 @@ from langchain_openai import ChatOpenAI
 from langchain_postgres import PGVector
 from langchain_upstage import UpstageEmbeddings
 from langgraph.graph import StateGraph, MessagesState
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_classic import hub
 
 CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
@@ -31,17 +35,10 @@ vectorstore = PGVector(
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
 
-
 # MessagesState를 사용하여 그래프를 초기화한다.
 # 이전 방식은 각 노드가 직접 상태를 수정했지만, 이제는 도구들이 메시지를 주고받는 방식으로 동작한다.
 graph_builder = StateGraph(MessagesState)
 
-# LangGraph를 위한 공제액 계산 로직을 구성한다.
-# 여러 체인을 조합하여 복잡한 계산을 처리한다.
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_classic import hub
 
 # LangChain Hub에서 검증된 RAG 프롬프트를 가져온다.
 rag_prompt = hub.pull("rlm/rag-prompt")

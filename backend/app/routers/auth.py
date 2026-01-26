@@ -54,7 +54,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/google", response_model=Token)
 async def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
-    
+
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -66,29 +66,29 @@ async def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db
             GOOGLE_TOKEN_INFO_URL,
             params={"id_token": payload.credential}
         )
-    
+
     if response.status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Google token"
         )
-    
+
     token_info = response.json()
-    
+
     # Client ID 검증
     if token_info.get("aud") != GOOGLE_CLIENT_ID:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid client ID"
         )
-    
+
     google_id = token_info.get("sub")
     email = token_info.get("email")
     name = token_info.get("name", email.split("@")[0])
-    
+
     # 기존 사용자 확인 (google_id로)
     user = db.query(User).filter(User.google_id == google_id).first()
-    
+
     if not user:
         # 이메일로 기존 계정 확인 (계정 연동)
         user = db.query(User).filter(User.email == email).first()
@@ -102,12 +102,13 @@ async def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db
             user = User(
                 email=email,
                 display_name=name,
+                # hashed_password=get_password_hash(token_urlsafe(32)),
                 google_id=google_id,
             )
             db.add(user)
             db.commit()
             db.refresh(user)
-    
+
     token = create_access_token(str(user.id))
     return Token(access_token=token, user=UserOut.model_validate(user))
 
