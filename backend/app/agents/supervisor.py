@@ -169,13 +169,10 @@ small_llm = get_llm(small=True)
 def call_llm(state: AgentState) -> Command[Literal["supervisor"]]:
     """
     소득세 및 종합부동산세(종부세)와 관계없는 질문에 답변하는 일반 에이전트.
-
     일반 에이전트를 실행하고 결과를 메시지 형태로 변환하여 반환합니다.
     실행이 완료되면 수퍼바이저 노드로 제어를 반환합니다.
-
     Args:
         state (AgentState): 현재 에이전트의 상태 정보
-
     Returns:
         Command: 수퍼바이저로의 전환 명령과 일반 에이전트 답변 메시지
     """
